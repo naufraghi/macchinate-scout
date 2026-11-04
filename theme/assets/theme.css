@@ -409,7 +409,6 @@ color: %color:On Primary Container%;
 .anvil-role-torino-map {
   display: block;
   width: 100%;
-  height: 420px;
   overflow: hidden;
   border-radius: 14px;
 }
@@ -565,9 +564,6 @@ color: %color:On Primary Container%;
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .anvil-role-torino-map {
-    height: 360px;
-  }
 }
 
 @media (max-width: 620px) {
@@ -601,10 +597,6 @@ color: %color:On Primary Container%;
   .rides-map-card,
   .rides-list-card {
     padding: 15px;
-  }
-
-  .anvil-role-torino-map {
-    height: 300px;
   }
 
   .rides-map-caption {

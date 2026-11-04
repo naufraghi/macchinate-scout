@@ -34,6 +34,7 @@ class Form1(Form1Template):
 
     self.torino_map.center = GoogleMap.LatLng(45.0703, 7.6869)
     self.torino_map.zoom = 12
+    self._map_markers = []
 
     self.zone_dropdown.items = [
       "Tutte le zone",
@@ -77,22 +78,24 @@ class Form1(Form1Template):
     self._refresh_map_markers(tratte)
 
   def _refresh_map_markers(self, tratte):
+    for marker in self._map_markers:
+      marker.remove_from_parent()
+    self._map_markers = []
+
     auto_per_zona = {}
     for tratta in tratte:
       zona = tratta["zona_partenza"]
       auto_per_zona[zona] = auto_per_zona.get(zona, 0) + 1
 
-    markers = []
     for zona, numero_auto in auto_per_zona.items():
       lat, lng = self.ZONE_COORDINATES.get(zona, self.TORINO_CENTER)
-      markers.append(
-        GoogleMap.Marker(
-          position=GoogleMap.LatLng(lat, lng),
-          title="{} · {} auto".format(zona, numero_auto),
-          label=str(numero_auto),
-        )
+      marker = GoogleMap.Marker(
+        position=GoogleMap.LatLng(lat, lng),
+        title="{} · {} auto".format(zona, numero_auto),
+        label=str(numero_auto),
       )
-    self.torino_map.markers = markers
+      self.torino_map.add_component(marker)
+      self._map_markers.append(marker)
 
   def _refresh_login_controls(self):
     user = anvil.users.get_user()
