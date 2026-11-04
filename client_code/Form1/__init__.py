@@ -32,6 +32,10 @@ class Form1(Form1Template):
   def __init__(self, **properties):
     super().__init__(**properties)
 
+    self.jolly_button.tooltip = (
+      "Ti registri come riserva: riceverai un'email quando le auto attive per "
+      "zona e tratta avranno esaurito i posti, così potrai attivare la tua."
+    )
     self.torino_map.center = GoogleMap.LatLng(45.0703, 7.6869)
     self.torino_map.zoom = 12
     self._map_markers = []
