@@ -455,6 +455,18 @@ color: %color:On Primary Container%;
   line-height: 1.5;
 }
 
+.anvil-role-rides-empty-state {
+  display: grid;
+  justify-items: center;
+  margin-top: 16px;
+  padding: 28px 20px;
+  border: 1px dashed %color:Surface Variant%;
+  border-radius: 16px;
+  color: %color:On Surface Variant%;
+  font-size: 13px;
+  text-align: center;
+}
+
 .ride-card {
   padding: 16px;
   border: 1px solid %color:Surface Variant%;
@@ -504,6 +516,46 @@ color: %color:On Primary Container%;
 
 .anvil-role-ride-card-value {
   color: %color:On Surface%;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.ride-card-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.anvil-role-ride-book-button > button {
+  min-height: 38px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  color: %color:On Primary%;
+  background: %color:Primary%;
+  font-weight: 650;
+}
+
+.anvil-role-ride-book-button > button:hover,
+.anvil-role-ride-book-button > button:focus-visible {
+  background: %color:On Primary Container%;
+  outline: 2px solid %color:Primary%;
+  outline-offset: 2px;
+}
+
+.anvil-role-ride-chat-links > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.anvil-role-ride-chat-link {
+  display: inline-block;
+  padding: 8px 12px;
+  border: 1px solid %color:Primary%;
+  border-radius: 999px;
   font-size: 13px;
   font-weight: 600;
 }

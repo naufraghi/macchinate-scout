@@ -5,16 +5,20 @@
   </div>
   <div class="ride-card-details">
     <div class="ride-card-detail">
+      <span>Conducente</span>
+      <anvil-component type="Label" name="driver_label" prop:role="ride-card-value"></anvil-component>
+    </div>
+    <div class="ride-card-detail">
       <span>Orario</span>
       <anvil-component type="Label" name="time_label" bind:text="self.item['orario']" prop:role="ride-card-value"></anvil-component>
     </div>
     <div class="ride-card-detail">
-      <span>Posti occupati</span>
-      <anvil-component type="Label" name="occupied_seats_label" bind:text="self.item['posti_occupati']" prop:role="ride-card-value"></anvil-component>
+      <span>Posti liberi</span>
+      <anvil-component type="Label" name="free_seats_label" prop:role="ride-card-value"></anvil-component>
     </div>
-    <div class="ride-card-detail">
-      <span>Posti totali</span>
-      <anvil-component type="Label" name="total_seats_label" bind:text="self.item['posti_totali']" prop:role="ride-card-value"></anvil-component>
-    </div>
+  </div>
+  <div class="ride-card-actions">
+    <anvil-component type="Button" name="booking_button" prop:text="Prenota Posto" prop:role="ride-book-button"></anvil-component>
+    <anvil-component type="RepeatingPanel" name="chat_contacts_panel" prop:item_template="M3_App.RideChatLink" prop:role="ride-chat-links"></anvil-component>
   </div>
 </article>

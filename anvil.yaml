@@ -29,30 +29,48 @@ db_schema:
       type: link_single
     - admin_ui: {order: 1, width: 200}
       client_hidden: false
-      name: tipo_tratta
+      name: nome_conducente
       type: string
     - admin_ui: {order: 2, width: 200}
       client_hidden: false
-      name: zona_partenza
+      name: tipo_tratta
       type: string
     - admin_ui: {order: 3, width: 200}
       client_hidden: false
-      name: orario
+      name: zona_partenza
       type: string
     - admin_ui: {order: 4, width: 200}
       client_hidden: false
+      name: orario
+      type: string
+    - admin_ui: {order: 5, width: 200}
+      client_hidden: false
       name: posti_totali
       type: number
-    - admin_ui: {order: 5, width: 200}
+    - admin_ui: {order: 6, width: 200}
       client_hidden: false
       name: posti_occupati
       type: number
-    - admin_ui: {order: 6, width: 200}
+    - admin_ui: {order: 7, width: 200}
       client_hidden: false
       name: stato
       type: string
     server: full
     title: Tratte
+  tratte_contatti:
+    client: none
+    columns:
+    - admin_ui: {order: 0, width: 200}
+      client_hidden: false
+      name: tratta
+      target: tratte
+      type: link_single
+    - admin_ui: {order: 1, width: 200}
+      client_hidden: true
+      name: telefono_wa
+      type: string
+    server: full
+    title: Contatti Tratte
   users:
     client: none
     columns:
