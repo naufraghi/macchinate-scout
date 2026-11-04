@@ -114,6 +114,10 @@ db_schema:
       client_hidden: true
       name: signed_up
       type: datetime
+    - admin_ui: {}
+      client_hidden: null
+      name: email_confirmation_key
+      type: string
     indexes: []
     server: full
     title: Users
