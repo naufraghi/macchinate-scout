@@ -31,10 +31,16 @@ class RideCard(RideCardTemplate):
       and conducente is not None
       and utente.get_id() == conducente.get_id()
     )
-    info_chat = anvil.server.call("get_chat_info_tratta", tratta)
-    self.chat_contacts_panel.items = info_chat["contatti"]
+    if utente is None:
+      contatti = []
+      prenotato = False
+    else:
+      info_chat = anvil.server.call("get_chat_info_tratta", tratta)
+      contatti = info_chat["contatti"]
+      prenotato = info_chat["prenotato"]
+    self.chat_contacts_panel.items = contatti
     self.booking_button.visible = (
-      posti_liberi > 0 and not is_driver and not info_chat["prenotato"]
+      posti_liberi > 0 and not is_driver and not prenotato
     )
 
   @handle("booking_button", "click")
