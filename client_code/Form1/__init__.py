@@ -128,12 +128,6 @@ class Form1(Form1Template):
     self._open_create_ride_dialog(is_jolly=True)
 
   def _open_create_ride_dialog(self, is_jolly):
-    if anvil.users.get_user() is None:
-      anvil.users.login_with_form()
-      self._refresh_login_controls()
-      if anvil.users.get_user() is None:
-        return
-
     zone_input = DropDown(items=self.ZONE_NAMES)
     zone_input.selected_value = self.ZONE_NAMES[0]
     name_input = TextBox()
@@ -151,6 +145,9 @@ class Form1(Form1Template):
     phone_input = TextBox(placeholder="es. +39 333 1234567")
 
     content = ColumnPanel()
+    content.add_component(
+      Label(text="Per pubblicare, ti chiederemo di accedere dopo aver premuto Pubblica.")
+    )
     content.add_component(Label(text="Nome conducente"))
     content.add_component(name_input)
     content.add_component(Label(text="Zona di partenza"))
@@ -185,8 +182,7 @@ class Form1(Form1Template):
       return
 
     if (
-      not nome_conducente
-      or not zona
+      not zona
       or not orario
       or not tipo_tratta
       or not telefono
@@ -196,6 +192,22 @@ class Form1(Form1Template):
         "Compila tutti i campi e indica almeno un posto.",
         title="Dati non validi",
       )
+      return
+
+    user = anvil.users.get_user()
+    if user is None:
+      anvil.users.login_with_form()
+      self._refresh_login_controls()
+      user = anvil.users.get_user()
+      if user is None:
+        return
+
+    if not nome_conducente:
+      email = user["email"]
+      if email:
+        nome_conducente = email.split("@")[0]
+    if not nome_conducente:
+      alert("Inserisci il nome del conducente.", title="Nome richiesto")
       return
 
     risultato = anvil.server.call(
