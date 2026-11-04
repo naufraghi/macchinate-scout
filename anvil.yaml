@@ -1,5 +1,58 @@
 allow_embedding: false
 db_schema:
+  prenotazioni:
+    client: none
+    columns:
+    - admin_ui: {order: 0, width: 200}
+      client_hidden: false
+      name: tratta
+      target: tratte
+      type: link_single
+    - admin_ui: {order: 1, width: 200}
+      client_hidden: false
+      name: passeggero
+      target: users
+      type: link_single
+    - admin_ui: {order: 2, width: 200}
+      client_hidden: false
+      name: telefono_wa
+      type: string
+    server: full
+    title: Prenotazioni
+  tratte:
+    client: none
+    columns:
+    - admin_ui: {order: 0, width: 200}
+      client_hidden: false
+      name: conducente
+      target: users
+      type: link_single
+    - admin_ui: {order: 1, width: 200}
+      client_hidden: false
+      name: tipo_tratta
+      type: string
+    - admin_ui: {order: 2, width: 200}
+      client_hidden: false
+      name: zona_partenza
+      type: string
+    - admin_ui: {order: 3, width: 200}
+      client_hidden: false
+      name: orario
+      type: string
+    - admin_ui: {order: 4, width: 200}
+      client_hidden: false
+      name: posti_totali
+      type: number
+    - admin_ui: {order: 5, width: 200}
+      client_hidden: false
+      name: posti_occupati
+      type: number
+    - admin_ui: {order: 6, width: 200}
+      client_hidden: false
+      name: stato
+      type: string
+    server: full
+    title: Tratte
   users:
     client: none
     columns:
