@@ -1,0 +1,20 @@
+<article class="ride-card">
+  <div class="ride-card-topline">
+    <anvil-component type="Label" name="zone_label" bind:text="self.item['zona_partenza']" prop:role="ride-card-zone"></anvil-component>
+    <anvil-component type="Label" name="direction_label" bind:text="self.item['tipo_tratta']" prop:role="ride-card-direction"></anvil-component>
+  </div>
+  <div class="ride-card-details">
+    <div class="ride-card-detail">
+      <span>Orario</span>
+      <anvil-component type="Label" name="time_label" bind:text="self.item['orario']" prop:role="ride-card-value"></anvil-component>
+    </div>
+    <div class="ride-card-detail">
+      <span>Posti occupati</span>
+      <anvil-component type="Label" name="occupied_seats_label" bind:text="self.item['posti_occupati']" prop:role="ride-card-value"></anvil-component>
+    </div>
+    <div class="ride-card-detail">
+      <span>Posti totali</span>
+      <anvil-component type="Label" name="total_seats_label" bind:text="self.item['posti_totali']" prop:role="ride-card-value"></anvil-component>
+    </div>
+  </div>
+</article>

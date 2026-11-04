@@ -155,6 +155,415 @@ color: %color:On Primary Container%;
   padding-bottom: 0;
 }
 
+/* Macchinate Scout dashboard */
+.anvil-role-ride-app-title {
+  color: %color:On Primary%;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.anvil-role-ride-login-bar {
+  align-items: center;
+}
+
+.anvil-role-ride-login-bar > .flow-panel-gutter > .flow-panel-item {
+  margin-left: 6px;
+  margin-right: 6px;
+}
+
+.anvil-role-ride-user-label {
+  color: %color:On Primary%;
+  font-size: 13px;
+}
+
+.anvil-role-ride-login-button > button {
+  min-height: 38px;
+  padding: 0 18px;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 999px;
+  color: %color:On Primary%;
+  background: transparent;
+  font-weight: 600;
+}
+
+.anvil-role-ride-login-button > button:hover,
+.anvil-role-ride-login-button > button:focus-visible {
+  background: rgba(255, 255, 255, 0.14);
+  outline: 2px solid %color:On Primary%;
+  outline-offset: 2px;
+}
+
+.rides-dashboard {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 28px clamp(16px, 3.5vw, 52px) 56px;
+  color: %color:On Surface%;
+}
+
+.rides-intro {
+  padding: 10px 0 28px;
+}
+
+.rides-eyebrow {
+  margin: 0 0 8px;
+  color: %color:Primary%;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+}
+
+.rides-intro h1 {
+  margin: 0;
+  color: %color:On Surface%;
+  font-size: clamp(30px, 4vw, 46px);
+  font-weight: 750;
+  letter-spacing: -0.035em;
+  line-height: 1.12;
+}
+
+.rides-intro > p:last-child {
+  max-width: 660px;
+  margin: 14px 0 0;
+  color: %color:On Surface Variant%;
+  font-size: 16px;
+}
+
+.rides-role-section,
+.rides-board-section {
+  margin-top: 22px;
+}
+
+.rides-section-heading,
+.rides-board-heading,
+.rides-card-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.rides-section-heading h2,
+.rides-board-heading h2,
+.rides-card-heading h3 {
+  margin: 0;
+  color: %color:On Surface%;
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.rides-role-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.anvil-role-ride-role-button > button,
+.anvil-role-ride-role-button-selected > button {
+  width: 100%;
+  min-height: 58px;
+  padding: 12px 18px;
+  border: 1px solid %color:Outline%;
+  border-radius: 14px;
+  color: %color:On Surface%;
+  background: %color:Surface%;
+  font-size: 15px;
+  font-weight: 700;
+  transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
+}
+
+.anvil-role-ride-role-button > button:hover,
+.anvil-role-ride-role-button > button:focus-visible {
+  border-color: %color:Primary%;
+  background: %color:Primary Overlay 1%;
+  outline: 2px solid %color:Primary%;
+  outline-offset: 2px;
+}
+
+.anvil-role-ride-role-button-selected > button {
+  border-color: %color:Primary%;
+  color: %color:On Primary%;
+  background: %color:Primary%;
+  box-shadow: 0 7px 18px rgba(55, 39, 98, 0.18);
+}
+
+.anvil-role-ride-role-button-selected > button:hover,
+.anvil-role-ride-role-button-selected > button:focus-visible {
+  background: %color:On Primary Container%;
+  outline: 2px solid %color:Primary%;
+  outline-offset: 2px;
+}
+
+.rides-board-heading {
+  align-items: end;
+  margin: 30px 0 14px;
+}
+
+.rides-board-hint {
+  margin: 0 0 2px;
+  color: %color:On Surface Variant%;
+}
+
+.rides-filter-card,
+.rides-map-card,
+.rides-list-card {
+  border: 1px solid %color:Surface Variant%;
+  border-radius: 20px;
+  background: %color:Surface%;
+  box-shadow: 0 8px 26px rgba(40, 32, 58, 0.045);
+}
+
+.rides-filter-card {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(220px, 0.8fr);
+  align-items: end;
+  gap: 26px;
+  padding: 18px 22px;
+}
+
+.rides-direction-filter {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.rides-direction-filter legend,
+.rides-zone-filter > label {
+  margin: 0 0 10px;
+  color: %color:On Surface Variant%;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.rides-direction-options {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-height: 42px;
+}
+
+.rides-direction-options .radio {
+  margin: 0;
+}
+
+.rides-zone-filter {
+  min-width: 0;
+}
+
+.rides-zone-filter > label {
+  display: block;
+}
+
+.anvil-role-ride-zone-dropdown select {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 38px 8px 12px;
+  border: 1px solid %color:Outline%;
+  border-radius: 11px;
+  color: %color:On Surface%;
+  background-color: %color:Surface%;
+  font: inherit;
+}
+
+.anvil-role-ride-zone-dropdown select:focus-visible {
+  border-color: %color:Primary%;
+  outline: 2px solid %color:Primary%;
+  outline-offset: 2px;
+}
+
+.rides-board-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(330px, 0.85fr);
+  align-items: stretch;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.rides-map-card,
+.rides-list-card {
+  min-width: 0;
+  padding: 20px;
+}
+
+.rides-card-heading {
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.rides-card-heading .rides-eyebrow {
+  margin-bottom: 5px;
+}
+
+.rides-card-heading h3 {
+  font-size: 18px;
+}
+
+.rides-map-caption,
+.rides-list-count {
+  color: %color:On Surface Variant%;
+  font-size: 12px;
+}
+
+.anvil-role-torino-map {
+  display: block;
+  width: 100%;
+  height: 420px;
+  overflow: hidden;
+  border-radius: 14px;
+}
+
+.anvil-role-ride-card-list > div {
+  display: grid;
+  gap: 12px;
+}
+
+.rides-empty-state {
+  display: grid;
+  justify-items: center;
+  padding: 42px 22px;
+  border: 1px dashed %color:Outline%;
+  border-radius: 15px;
+  background: %color:Background%;
+  text-align: center;
+}
+
+.rides-empty-icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  margin-bottom: 12px;
+  border-radius: 50%;
+  color: %color:Primary%;
+  background: %color:Primary Container%;
+  font-size: 23px;
+  font-weight: 700;
+}
+
+.rides-empty-state p {
+  margin: 0 0 6px;
+  color: %color:On Surface%;
+  font-weight: 700;
+}
+
+.rides-empty-state > span:last-child {
+  max-width: 280px;
+  color: %color:On Surface Variant%;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.ride-card {
+  padding: 16px;
+  border: 1px solid %color:Surface Variant%;
+  border-radius: 15px;
+  background: %color:Surface%;
+}
+
+.ride-card-topline {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.anvil-role-ride-card-zone {
+  color: %color:On Surface%;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.anvil-role-ride-card-direction {
+  padding: 3px 9px;
+  border-radius: 999px;
+  color: %color:On Primary Container%;
+  background: %color:Primary Container%;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ride-card-details {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.ride-card-detail {
+  display: grid;
+  gap: 3px;
+}
+
+.ride-card-detail > span {
+  color: %color:On Surface Variant%;
+  font-size: 11px;
+}
+
+.anvil-role-ride-card-value {
+  color: %color:On Surface%;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .rides-board-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .anvil-role-torino-map {
+    height: 360px;
+  }
+}
+
+@media (max-width: 620px) {
+  .rides-dashboard {
+    padding: 18px 14px 36px;
+  }
+
+  .rides-role-buttons {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .rides-filter-card {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    padding: 16px;
+  }
+
+  .rides-board-heading,
+  .rides-section-heading,
+  .rides-card-heading {
+    align-items: start;
+  }
+
+  .rides-board-hint {
+    max-width: 155px;
+    font-size: 12px;
+    text-align: right;
+  }
+
+  .rides-map-card,
+  .rides-list-card {
+    padding: 15px;
+  }
+
+  .anvil-role-torino-map {
+    height: 300px;
+  }
+
+  .rides-map-caption {
+    display: none;
+  }
+
+  .ride-card-details {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 /* Page structure: App bar with optional left nav */
 .structure {
 /*   display: flex;

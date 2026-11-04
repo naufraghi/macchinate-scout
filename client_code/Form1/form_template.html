@@ -1,0 +1,85 @@
+<anvil-form container="HtmlTemplate" prop:html="@theme:standard-page.html">
+  <anvil-component type="Label" name="app_title" prop:text="Macchinate Scout" prop:role="ride-app-title" container:slot="title"></anvil-component>
+
+  <anvil-component type="HtmlComponent" name="content_panel" container:slot="default">
+  <main class="rides-dashboard">
+    <section class="rides-intro">
+      <p class="rides-eyebrow">CLAN TORINO · PASSAGGI CONDIVISI</p>
+      <h1>Un passaggio per ogni attività</h1>
+      <p>Offri un posto in auto o trova un passaggio per raggiungere la prossima attività.</p>
+    </section>
+
+    <section class="rides-role-section" aria-labelledby="rides-role-title">
+      <div class="rides-section-heading">
+        <div>
+          <p class="rides-eyebrow">PARTECIPA</p>
+          <h2 id="rides-role-title">Come vuoi partecipare?</h2>
+        </div>
+      </div>
+      <div class="rides-role-buttons">
+        <anvil-component type="Button" name="offer_button" prop:text="Offro Passaggio" prop:role="ride-role-button-selected"></anvil-component>
+        <anvil-component type="Button" name="seek_button" prop:text="Cerco Passaggio" prop:role="ride-role-button"></anvil-component>
+        <anvil-component type="Button" name="jolly_button" prop:text="Sono Driver Jolly" prop:role="ride-role-button"></anvil-component>
+      </div>
+    </section>
+
+    <section class="rides-board-section" aria-labelledby="rides-board-title">
+      <div class="rides-board-heading">
+        <div>
+          <p class="rides-eyebrow">BACHECA</p>
+          <h2 id="rides-board-title">Trova un passaggio</h2>
+        </div>
+        <p class="rides-board-hint">Filtra le tratte disponibili per direzione e zona.</p>
+      </div>
+
+      <div class="rides-filter-card">
+        <fieldset class="rides-direction-filter">
+          <legend>Direzione</legend>
+          <div class="rides-direction-options">
+            <anvil-component type="RadioButton" name="outbound_radio" prop:text="Andata" prop:group_name="ride-direction" prop:value="andata" prop:selected="true"></anvil-component>
+            <anvil-component type="RadioButton" name="return_radio" prop:text="Ritorno" prop:group_name="ride-direction" prop:value="ritorno"></anvil-component>
+          </div>
+        </fieldset>
+        <div class="rides-zone-filter">
+          <label>Zona di partenza</label>
+          <anvil-component type="DropDown" name="zone_dropdown" prop:role="ride-zone-dropdown"></anvil-component>
+        </div>
+      </div>
+
+      <div class="rides-board-grid">
+        <article class="rides-map-card" aria-labelledby="rides-map-title">
+          <div class="rides-card-heading">
+            <div>
+              <p class="rides-eyebrow">TORINO E DINTORNI</p>
+              <h3 id="rides-map-title">Mappa dei passaggi</h3>
+            </div>
+            <span class="rides-map-caption">Centro mappa: Torino</span>
+          </div>
+          <anvil-component type="GoogleMap" name="torino_map" prop:role="torino-map"></anvil-component>
+        </article>
+
+        <article class="rides-list-card" aria-labelledby="rides-list-title">
+          <div class="rides-card-heading rides-list-heading">
+            <div>
+              <p class="rides-eyebrow">DISPONIBILITÀ</p>
+              <h3 id="rides-list-title">Auto disponibili</h3>
+            </div>
+            <span class="rides-list-count">Bacheca</span>
+          </div>
+          <anvil-component type="RepeatingPanel" name="rides_panel" prop:item_template="M3_App.RideCard" prop:role="ride-card-list"></anvil-component>
+          <div class="rides-empty-state">
+            <span class="rides-empty-icon" aria-hidden="true">↗</span>
+            <p>Le auto disponibili appariranno qui.</p>
+            <span>Quando una tratta viene pubblicata, troverai qui orario, zona e posti liberi.</span>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+  </anvil-component>
+
+  <anvil-component type="FlowPanel" name="navbar_links" prop:role="ride-login-bar" container:slot="nav-right">
+    <anvil-component type="Label" name="user_label" prop:text="" prop:visible="false" prop:role="ride-user-label"></anvil-component>
+    <anvil-component type="Button" name="login_button" prop:text="Accedi" prop:role="ride-login-button"></anvil-component>
+  </anvil-component>
+</anvil-form>
