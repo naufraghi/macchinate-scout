@@ -3,6 +3,7 @@ from anvil import *
 import anvil.server
 import anvil.users
 import anvil.js
+from .. import RideAuth
 
 
 class Form1(Form1Template):
@@ -62,6 +63,7 @@ class Form1(Form1Template):
   def form_show(self, **event_args):
     self._refresh_login_controls()
     self._refresh_board()
+    self._resume_pending_action()
 
   def _selected_trip_type(self):
     return "ritorno" if self.return_radio.selected else "andata"
@@ -106,11 +108,34 @@ class Form1(Form1Template):
     user = anvil.users.get_user()
     if user is None:
       self.user_label.visible = False
-      self.login_button.text = "Accedi"
+      self.login_button.text = "Accedi con email"
     else:
       self.user_label.text = user["email"]
       self.user_label.visible = True
       self.login_button.text = "Esci"
+
+  def _resume_pending_action(self):
+    user = anvil.users.get_user()
+    if user is None:
+      return
+
+    action = RideAuth.load_pending_action()
+    if action is None:
+      return
+
+    RideAuth.clear_pending_action()
+    kind = action.get("kind")
+    if kind == "offer":
+      self._publish_ride(action, user)
+    elif kind == "booking":
+      result = anvil.server.call(
+        "prenota_posto_per_id", action.get("ride_id"), action.get("phone")
+      )
+      if not result.get("ok"):
+        alert(result.get("message", "Non è stato possibile prenotare il posto."))
+        return
+      alert("Prenotazione confermata.", title="Posto prenotato")
+      self._refresh_board()
 
   def _select_role(self, selected_button):
     for button in (self.offer_button, self.seek_button, self.jolly_button):
@@ -137,6 +162,7 @@ class Form1(Form1Template):
     zone_input.selected_value = self.ZONE_NAMES[0]
     name_input = TextBox()
     user = anvil.users.get_user()
+    email_input = TextBox(placeholder="nome@esempio.it")
     display_name = ""
     if user is not None:
       email = user["email"]
@@ -152,9 +178,17 @@ class Form1(Form1Template):
     phone_input = TextBox(placeholder="es. +39 333 1234567")
 
     content = ColumnPanel()
-    content.add_component(
-      Label(text="Per pubblicare, ti chiederemo di accedere dopo aver premuto Pubblica.")
-    )
+    if user is None:
+      content.add_component(
+        Label(
+          text=(
+            "Inserisci la tua email: riceverai un link per accedere o confermare "
+            "il nuovo account. Al rientro il passaggio verrà pubblicato."
+          )
+        )
+      )
+      content.add_component(Label(text="Email"))
+      content.add_component(email_input)
     content.add_component(Label(text="Nome conducente"))
     content.add_component(name_input)
     content.add_component(Label(text="Zona di partenza"))
@@ -220,14 +254,50 @@ class Form1(Form1Template):
       )
       return
 
-    user = anvil.users.get_user()
     if user is None:
-      anvil.users.login_with_form()
-      self._refresh_login_controls()
-      user = anvil.users.get_user()
-      if user is None:
+      email = (email_input.text or "").strip().lower()
+      if "@" not in email:
+        alert("Inserisci un indirizzo email valido.", title="Email richiesta")
         return
+      action = {
+        "kind": "offer",
+        "zone": zona,
+        "date": data_tratta.isoformat(),
+        "time": orario,
+        "meeting_place": luogo_appuntamento,
+        "seats": posti,
+        "trip_type": tipo_tratta,
+        "is_jolly": is_jolly,
+        "driver_name": nome_conducente,
+        "phone": telefono,
+      }
+      result = RideAuth.request_email_access(email, action)
+      if not result.get("ok"):
+        alert(result.get("message", "Non è stato possibile inviare l'email."))
+        return
+      alert(
+        "Controlla la posta: troverai il link per accedere o confermare "
+        "l'account. Al rientro completeremo la pubblicazione.",
+        title="Controlla la posta",
+      )
+      return
 
+    action = {
+      "kind": "offer",
+      "zone": zona,
+      "date": data_tratta.isoformat(),
+      "time": orario,
+      "meeting_place": luogo_appuntamento,
+      "seats": posti,
+      "trip_type": tipo_tratta,
+      "is_jolly": is_jolly,
+      "driver_name": nome_conducente,
+      "phone": telefono,
+    }
+    self._publish_ride(action, user)
+
+  def _publish_ride(self, action, user):
+    nome_conducente = action.get("driver_name", "").strip()
     if not nome_conducente:
       email = user["email"]
       if email:
@@ -238,15 +308,15 @@ class Form1(Form1Template):
 
     risultato = anvil.server.call(
       "crea_tratta",
-      zona,
-      data_tratta,
-      orario,
-      luogo_appuntamento,
-      posti,
-      tipo_tratta,
-      is_jolly,
+      action["zone"],
+      action["date"],
+      action["time"],
+      action["meeting_place"],
+      action["seats"],
+      action["trip_type"],
+      action["is_jolly"],
       nome_conducente,
-      telefono,
+      action["phone"],
     )
     if isinstance(risultato, dict) and not risultato.get("ok", True):
       alert(risultato.get("message", "Non è stato possibile pubblicare la tratta."))
@@ -254,7 +324,7 @@ class Form1(Form1Template):
 
     messaggio = (
       "Auto salvata come Driver Jolly."
-      if is_jolly
+      if action["is_jolly"]
       else "Tratta pubblicata nella bacheca."
     )
     alert(messaggio, title="Operazione completata")
@@ -278,7 +348,27 @@ class Form1(Form1Template):
   @handle("login_button", "click")
   def login_button_click(self, **event_args):
     if anvil.users.get_user() is None:
-      anvil.users.login_with_form()
+      email_input = TextBox(placeholder="nome@esempio.it")
+      content = ColumnPanel()
+      content.add_component(Label(text="Ricevi un link per accedere o confermare il tuo account."))
+      content.add_component(Label(text="Email"))
+      content.add_component(email_input)
+      conferma = alert(
+        content,
+        title="Accedi con email",
+        buttons=[("Invia link", True), ("Annulla", False)],
+      )
+      if conferma is not True:
+        return
+      email = (email_input.text or "").strip().lower()
+      if "@" not in email:
+        alert("Inserisci un indirizzo email valido.", title="Email richiesta")
+        return
+      result = RideAuth.request_email_access(email)
+      if not result.get("ok"):
+        alert(result.get("message", "Non è stato possibile inviare l'email."))
+        return
+      alert("Controlla la posta per completare l'accesso.", title="Controlla la posta")
     else:
       anvil.users.logout()
     self._refresh_login_controls()

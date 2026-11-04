@@ -7,7 +7,8 @@ unique_ids:
     Form1: M2NXJIUOSEPWSNK3BQDJUAL4S6TBQXB7
     RideCard: '1793811090985.997167335226472'
     RideChatLink: '1793811556560.7288707143690194'
-  modules: {}
+  modules:
+    RideAuth: '1793825348227.5091832602727658'
   scripts: {}
   server_modules:
     Tratte: '1793809978743.17767658488124594'

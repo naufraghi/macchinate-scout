@@ -2,6 +2,7 @@ from ._anvil_designer import RideCardTemplate
 from anvil import *
 import anvil.server
 import anvil.users
+from .. import RideAuth
 
 
 class RideCard(RideCardTemplate):
@@ -38,15 +39,24 @@ class RideCard(RideCardTemplate):
 
   @handle("booking_button", "click")
   def booking_button_click(self, **event_args):
-    if anvil.users.get_user() is None:
-      anvil.users.login_with_form()
-      if anvil.users.get_user() is None:
-        return
+    user = anvil.users.get_user()
 
     phone_input = TextBox(placeholder="es. +39 333 1234567")
     content = ColumnPanel()
     content.add_component(Label(text="Telefono WhatsApp per la prenotazione"))
     content.add_component(phone_input)
+    email_input = TextBox(placeholder="nome@esempio.it")
+    if user is None:
+      content.add_component(
+        Label(
+          text=(
+            "Inserisci la tua email per ricevere un link di accesso. "
+            "La prenotazione verrà completata al rientro."
+          )
+        )
+      )
+      content.add_component(Label(text="Email"))
+      content.add_component(email_input)
     conferma = alert(
       content,
       title="Prenota un posto",
@@ -58,6 +68,27 @@ class RideCard(RideCardTemplate):
     telefono = (phone_input.text or "").strip()
     if not telefono:
       alert("Inserisci il tuo numero WhatsApp.", title="Numero richiesto")
+      return
+
+    if user is None:
+      email = (email_input.text or "").strip().lower()
+      if "@" not in email:
+        alert("Inserisci un indirizzo email valido.", title="Email richiesta")
+        return
+      action = {
+        "kind": "booking",
+        "ride_id": self.item.get_id(),
+        "phone": telefono,
+      }
+      result = RideAuth.request_email_access(email, action)
+      if not result.get("ok"):
+        alert(result.get("message", "Non è stato possibile inviare l'email."))
+        return
+      alert(
+        "Controlla la posta per accedere o confermare l'account. "
+        "Al rientro completeremo la prenotazione.",
+        title="Controlla la posta",
+      )
       return
 
     risultato = anvil.server.call("prenota_posto", self.item, telefono)

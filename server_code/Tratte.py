@@ -5,6 +5,7 @@ import anvil.tables.query as q
 import anvil.users
 from anvil.tables import app_tables
 from datetime import date
+import secrets
 
 
 def _normalizza_telefono_wa(telefono):
@@ -18,6 +19,20 @@ def _normalizza_telefono_wa(telefono):
     if len(cifre) < 10 or len(cifre) > 15:
         return None
     return cifre
+
+
+@anvil.server.callable
+def inizia_accesso_email(email):
+    email = (email or "").strip().lower()
+    if not email or "@" not in email:
+        return {"ok": False, "message": "Inserisci un indirizzo email valido."}
+
+    try:
+        anvil.users.signup_with_email(email, secrets.token_urlsafe(32))
+    except anvil.users.UserExists:
+        anvil.users.send_token_login_email(email)
+
+    return {"ok": True}
 
 
 @anvil.tables.in_transaction
@@ -50,6 +65,11 @@ def crea_tratta(
     telefono = _normalizza_telefono_wa(telefono_wa)
     if not telefono:
         return {"ok": False, "message": "Inserisci un numero WhatsApp valido."}
+    if isinstance(data_tratta, str):
+        try:
+            data_tratta = date.fromisoformat(data_tratta)
+        except ValueError:
+            return {"ok": False, "message": "La data della tratta non è valida."}
     nome_conducente = (nome_conducente or "").strip()
     luogo_appuntamento = (luogo_appuntamento or "").strip()
     if (
@@ -109,6 +129,15 @@ def _crea_prenotazione(tratta_id, passeggero, telefono):
 
 @anvil.server.callable(require_user=True)
 def prenota_posto(tratta_row, telefono):
+    return _prenota_posto(tratta_row.get_id(), telefono)
+
+
+@anvil.server.callable(require_user=True)
+def prenota_posto_per_id(tratta_id, telefono):
+    return _prenota_posto(tratta_id, telefono)
+
+
+def _prenota_posto(tratta_id, telefono):
     passeggero = anvil.users.get_user()
     if passeggero is None:
         return {"ok": False, "message": "Devi accedere per prenotare un posto."}
@@ -117,9 +146,7 @@ def prenota_posto(tratta_row, telefono):
     if not telefono:
         return {"ok": False, "message": "Inserisci un numero WhatsApp valido."}
 
-    risultato, messaggio_errore = _crea_prenotazione(
-        tratta_row.get_id(), passeggero, telefono
-    )
+    risultato, messaggio_errore = _crea_prenotazione(tratta_id, passeggero, telefono)
     if risultato is None:
         return {"ok": False, "message": messaggio_errore}
 
