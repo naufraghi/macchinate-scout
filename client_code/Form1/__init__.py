@@ -2,6 +2,7 @@ from ._anvil_designer import Form1Template
 from anvil import *
 import anvil.server
 import anvil.users
+import anvil.js
 
 
 class Form1(Form1Template):
@@ -143,7 +144,7 @@ class Form1(Form1Template):
         display_name = email.split("@")[0]
     name_input.text = display_name
     time_input = TextBox(placeholder="es. 09:30")
-    seats_input = TextBox(placeholder="Numero di posti")
+    seats_input = TextBox(placeholder="Numero di posti", type="number")
     trip_type_input = DropDown(items=["andata", "ritorno"])
     trip_type_input.selected_value = "andata"
     phone_input = TextBox(placeholder="es. +39 333 1234567")
@@ -160,6 +161,14 @@ class Form1(Form1Template):
     content.add_component(time_input)
     content.add_component(Label(text="Posti totali"))
     content.add_component(seats_input)
+    seats_input_element = anvil.js.get_dom_node(seats_input)
+    if seats_input_element.tagName != "INPUT":
+      seats_input_element = seats_input_element.querySelector("input")
+      if seats_input_element is None:
+        raise RuntimeError("Impossibile trovare l'input numerico dei posti.")
+    seats_input_element.setAttribute("min", "1")
+    seats_input_element.setAttribute("max", "8")
+    seats_input_element.setAttribute("step", "1")
     content.add_component(Label(text="Tipo tratta"))
     content.add_component(trip_type_input)
     content.add_component(Label(text="Telefono WhatsApp del conducente"))
@@ -179,10 +188,17 @@ class Form1(Form1Template):
     orario = (time_input.text or "").strip()
     tipo_tratta = trip_type_input.selected_value
     telefono = (phone_input.text or "").strip()
+    posti_input = seats_input.text
     try:
-      posti = int((seats_input.text or "").strip())
+      posti = int(posti_input)
     except (TypeError, ValueError):
       alert("Inserisci un numero intero di posti.", title="Dati non validi")
+      return
+    if posti != posti_input:
+      alert("Inserisci un numero intero di posti.", title="Dati non validi")
+      return
+    if not 1 <= posti <= 8:
+      alert("Il numero di posti deve essere compreso tra 1 e 8.", title="Dati non validi")
       return
 
     if (
@@ -190,7 +206,6 @@ class Form1(Form1Template):
       or not orario
       or not tipo_tratta
       or not telefono
-      or posti < 1
     ):
       alert(
         "Compila tutti i campi e indica almeno un posto.",
