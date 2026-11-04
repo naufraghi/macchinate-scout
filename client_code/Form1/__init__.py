@@ -143,7 +143,9 @@ class Form1(Form1Template):
       if email:
         display_name = email.split("@")[0]
     name_input.text = display_name
+    date_input = DatePicker()
     time_input = TextBox(placeholder="es. 09:30")
+    meeting_place_input = TextBox(placeholder="es. Piazza Castello, ingresso lato nord")
     seats_input = TextBox(placeholder="Numero di posti", type="number")
     trip_type_input = DropDown(items=["andata", "ritorno"])
     trip_type_input.selected_value = "andata"
@@ -157,8 +159,12 @@ class Form1(Form1Template):
     content.add_component(name_input)
     content.add_component(Label(text="Zona di partenza"))
     content.add_component(zone_input)
+    content.add_component(Label(text="Data"))
+    content.add_component(date_input)
     content.add_component(Label(text="Orario"))
     content.add_component(time_input)
+    content.add_component(Label(text="Luogo preciso dell'appuntamento"))
+    content.add_component(meeting_place_input)
     content.add_component(Label(text="Posti totali"))
     content.add_component(seats_input)
     seats_input_element = anvil.js.get_dom_node(seats_input)
@@ -185,7 +191,9 @@ class Form1(Form1Template):
 
     zona = zone_input.selected_value
     nome_conducente = (name_input.text or "").strip()
+    data_tratta = date_input.date
     orario = (time_input.text or "").strip()
+    luogo_appuntamento = (meeting_place_input.text or "").strip()
     tipo_tratta = trip_type_input.selected_value
     telefono = (phone_input.text or "").strip()
     posti_input = seats_input.text
@@ -194,16 +202,15 @@ class Form1(Form1Template):
     except (TypeError, ValueError):
       alert("Inserisci un numero intero di posti.", title="Dati non validi")
       return
-    if posti != posti_input:
-      alert("Inserisci un numero intero di posti.", title="Dati non validi")
-      return
     if not 1 <= posti <= 8:
       alert("Il numero di posti deve essere compreso tra 1 e 8.", title="Dati non validi")
       return
 
     if (
       not zona
+      or not data_tratta
       or not orario
+      or not luogo_appuntamento
       or not tipo_tratta
       or not telefono
     ):
@@ -232,7 +239,9 @@ class Form1(Form1Template):
     risultato = anvil.server.call(
       "crea_tratta",
       zona,
+      data_tratta,
       orario,
+      luogo_appuntamento,
       posti,
       tipo_tratta,
       is_jolly,

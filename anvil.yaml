@@ -45,13 +45,21 @@ db_schema:
       type: string
     - admin_ui: {order: 5, width: 200}
       client_hidden: false
+      name: data_tratta
+      type: date
+    - admin_ui: {order: 6, width: 240}
+      client_hidden: false
+      name: luogo_appuntamento
+      type: string
+    - admin_ui: {order: 7, width: 200}
+      client_hidden: false
       name: posti_totali
       type: number
-    - admin_ui: {order: 6, width: 200}
+    - admin_ui: {order: 8, width: 200}
       client_hidden: false
       name: posti_occupati
       type: number
-    - admin_ui: {order: 7, width: 200}
+    - admin_ui: {order: 9, width: 200}
       client_hidden: false
       name: stato
       type: string

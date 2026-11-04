@@ -4,6 +4,7 @@ import anvil.tables
 import anvil.tables.query as q
 import anvil.users
 from anvil.tables import app_tables
+from datetime import date
 
 
 def _normalizza_telefono_wa(telefono):
@@ -21,13 +22,16 @@ def _normalizza_telefono_wa(telefono):
 
 @anvil.tables.in_transaction
 def _salva_tratta(
-    zona, orario, posti, tipo_tratta, is_jolly, nome_conducente, conducente, telefono
+    zona, data_tratta, orario, luogo_appuntamento, posti, tipo_tratta, is_jolly,
+    nome_conducente, conducente, telefono
 ):
     tratta = app_tables.tratte.add_row(
         conducente=conducente,
         nome_conducente=nome_conducente,
         zona_partenza=zona,
+        data_tratta=data_tratta,
         orario=orario,
+        luogo_appuntamento=luogo_appuntamento,
         posti_totali=posti,
         posti_occupati=0,
         tipo_tratta=tipo_tratta,
@@ -39,17 +43,21 @@ def _salva_tratta(
 
 @anvil.server.callable(require_user=True)
 def crea_tratta(
-    zona, orario, posti, tipo_tratta, is_jolly, nome_conducente, telefono_wa
+    zona, data_tratta, orario, luogo_appuntamento, posti, tipo_tratta, is_jolly,
+    nome_conducente, telefono_wa
 ):
     conducente = anvil.users.get_user()
     telefono = _normalizza_telefono_wa(telefono_wa)
     if not telefono:
         return {"ok": False, "message": "Inserisci un numero WhatsApp valido."}
     nome_conducente = (nome_conducente or "").strip()
+    luogo_appuntamento = (luogo_appuntamento or "").strip()
     if (
         not nome_conducente
         or not zona
+        or not isinstance(data_tratta, date)
         or not orario
+        or not luogo_appuntamento
         or tipo_tratta not in ("andata", "ritorno")
     ):
         return {"ok": False, "message": "I dati della tratta non sono validi."}
@@ -62,7 +70,9 @@ def crea_tratta(
 
     return _salva_tratta(
         zona,
+        data_tratta,
         orario,
+        luogo_appuntamento,
         posti,
         tipo_tratta,
         bool(is_jolly),
@@ -116,7 +126,14 @@ def prenota_posto(tratta_row, telefono):
     prenotazione, conducente = risultato
     tratta = prenotazione["tratta"]
     zona = tratta["zona_partenza"]
+    data_tratta = tratta["data_tratta"]
+    data_tratta_testo = (
+        data_tratta.strftime("%d/%m/%Y")
+        if data_tratta is not None
+        else "Data non indicata"
+    )
     orario = tratta["orario"]
+    luogo_appuntamento = tratta["luogo_appuntamento"]
     tipo_tratta = tratta["tipo_tratta"]
     email_passeggero = passeggero["email"]
     email_conducente = conducente["email"]
@@ -126,18 +143,22 @@ def prenota_posto(tratta_row, telefono):
         subject="Conferma prenotazione posto",
         text=(
             "La tua prenotazione è confermata.\n"
-            "Zona: {}\nOrario: {}\nTipo di tratta: {}\n"
+            "Zona: {}\nData: {}\nOrario: {}\nLuogo dell'appuntamento: {}\n"
+            "Tipo di tratta: {}\n"
             "Numero WhatsApp: {}"
-        ).format(zona, orario, tipo_tratta, telefono),
+        ).format(zona, data_tratta_testo, orario, luogo_appuntamento,
+                 tipo_tratta, telefono),
     )
     anvil.email.send(
         to=email_conducente,
         subject="Nuova prenotazione per la tua tratta",
         text=(
             "Un passeggero ha prenotato un posto nella tua tratta.\n"
-            "Zona: {}\nOrario: {}\nTipo di tratta: {}\n"
+            "Zona: {}\nData: {}\nOrario: {}\nLuogo dell'appuntamento: {}\n"
+            "Tipo di tratta: {}\n"
             "Numero WhatsApp del passeggero: {}"
-        ).format(zona, orario, tipo_tratta, telefono),
+        ).format(zona, data_tratta_testo, orario, luogo_appuntamento,
+                 tipo_tratta, telefono),
     )
 
     return {"ok": True, "prenotazione": prenotazione}
@@ -152,7 +173,9 @@ def get_tratte_disponibili(tipo_tratta, zona=None):
         q.fetch_only(
             "tipo_tratta",
             "zona_partenza",
+            "data_tratta",
             "orario",
+            "luogo_appuntamento",
             "posti_totali",
             "posti_occupati",
             "nome_conducente",
