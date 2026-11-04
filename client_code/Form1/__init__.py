@@ -123,10 +123,9 @@ class Form1(Form1Template):
     if action is None:
       return
 
-    RideAuth.clear_pending_action()
     kind = action.get("kind")
     if kind == "offer":
-      self._publish_ride(action, user)
+      self._publish_ride(action, user, pending=True)
     elif kind == "booking":
       result = anvil.server.call(
         "prenota_posto_per_id", action.get("ride_id"), action.get("phone")
@@ -134,8 +133,11 @@ class Form1(Form1Template):
       if not result.get("ok"):
         alert(result.get("message", "Non è stato possibile prenotare il posto."))
         return
+      RideAuth.clear_pending_action()
       alert("Prenotazione confermata.", title="Posto prenotato")
       self._refresh_board()
+    else:
+      RideAuth.clear_pending_action()
 
   def _select_role(self, selected_button):
     for button in (self.offer_button, self.seek_button, self.jolly_button):
@@ -296,7 +298,7 @@ class Form1(Form1Template):
     }
     self._publish_ride(action, user)
 
-  def _publish_ride(self, action, user):
+  def _publish_ride(self, action, user, pending=False):
     nome_conducente = action.get("driver_name", "").strip()
     if not nome_conducente:
       email = user["email"]
@@ -304,7 +306,7 @@ class Form1(Form1Template):
         nome_conducente = email.split("@")[0]
     if not nome_conducente:
       alert("Inserisci il nome del conducente.", title="Nome richiesto")
-      return
+      return False
 
     risultato = anvil.server.call(
       "crea_tratta",
@@ -320,7 +322,10 @@ class Form1(Form1Template):
     )
     if isinstance(risultato, dict) and not risultato.get("ok", True):
       alert(risultato.get("message", "Non è stato possibile pubblicare la tratta."))
-      return
+      return False
+
+    if pending:
+      RideAuth.clear_pending_action()
 
     messaggio = (
       "Auto salvata come Driver Jolly."
@@ -329,6 +334,7 @@ class Form1(Form1Template):
     )
     alert(messaggio, title="Operazione completata")
     self._refresh_board()
+    return True
 
   @handle("outbound_radio", "change")
   def outbound_radio_change(self, **event_args):

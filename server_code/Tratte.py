@@ -30,7 +30,9 @@ def inizia_accesso_email(email):
     try:
         anvil.users.signup_with_email(email, secrets.token_urlsafe(32))
     except anvil.users.UserExists:
-        anvil.users.send_token_login_email(email)
+        pass
+
+    anvil.users.send_token_login_email(email)
 
     return {"ok": True}
 
