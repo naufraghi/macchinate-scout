@@ -1,0 +1,16 @@
+---
+custom_component: true
+properties:
+- name: contact_name
+  type: string
+- name: contact_name_label
+  type: string
+- name: phone
+  type: string
+---
+<anvil-form container="ColumnPanel">
+  <anvil-component type="Label" name="name_label" prop:text="Nome"></anvil-component>
+  <anvil-component type="TextBox" name="name_input"></anvil-component>
+  <anvil-component type="Label" name="phone_label" prop:text="Telefono WhatsApp"></anvil-component>
+  <anvil-component type="TextBox" name="phone_input" prop:placeholder="es. +39 333 1234567"></anvil-component>
+</anvil-form>

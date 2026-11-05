@@ -85,6 +85,15 @@ class Form1(Form1Template):
     self.rides_panel.items = tratte
     self.empty_state.visible = not tratte
     self._refresh_map_markers(tratte)
+    self._refresh_owned_jolly_rides()
+
+  def _refresh_owned_jolly_rides(self):
+    user = anvil.users.get_user()
+    tratte_jolly = (
+      list(anvil.server.call("get_auto_jolly_utente")) if user is not None else []
+    )
+    self.owned_jolly_list.items = tratte_jolly
+    self.owned_jolly_rides_panel.visible = bool(tratte_jolly)
 
   def _refresh_map_markers(self, tratte):
     for marker in self._map_markers:

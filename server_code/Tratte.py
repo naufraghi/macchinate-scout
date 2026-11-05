@@ -106,6 +106,72 @@ def crea_tratta(
     )
 
 
+@anvil.server.callable(require_user=True)
+@anvil.tables.in_transaction
+def modifica_prenotazione(prenotazione_id, nome_passeggero, telefono_wa):
+    passeggero = anvil.users.get_user()
+    if passeggero is None:
+        return {"ok": False, "message": "Devi accedere per modificare la prenotazione."}
+    if not prenotazione_id:
+        return {"ok": False, "message": "La prenotazione non esiste."}
+
+    nome_passeggero = (nome_passeggero or "").strip()
+    telefono = _normalizza_telefono_wa(telefono_wa)
+    if not nome_passeggero:
+        return {"ok": False, "message": "Inserisci il tuo nome."}
+    if not telefono:
+        return {"ok": False, "message": "Inserisci un numero WhatsApp valido."}
+
+    prenotazione = app_tables.prenotazioni.get_by_id(prenotazione_id)
+    proprietario_prenotazione = (
+        prenotazione["passeggero"] if prenotazione is not None else None
+    )
+    if (
+        prenotazione is None
+        or proprietario_prenotazione is None
+        or proprietario_prenotazione.get_id() != passeggero.get_id()
+    ):
+        return {"ok": False, "message": "Non puoi modificare questa prenotazione."}
+
+    prenotazione["nome_passeggero"] = nome_passeggero
+    prenotazione["telefono_wa"] = telefono
+    return {"ok": True}
+
+
+@anvil.server.callable(require_user=True)
+@anvil.tables.in_transaction
+def modifica_contatti_tratta(tratta_id, nome_conducente, telefono_wa):
+    conducente = anvil.users.get_user()
+    if conducente is None:
+        return {"ok": False, "message": "Devi accedere per modificare l'auto."}
+    if not tratta_id:
+        return {"ok": False, "message": "La tratta non esiste."}
+
+    nome_conducente = (nome_conducente or "").strip()
+    telefono = _normalizza_telefono_wa(telefono_wa)
+    if not nome_conducente:
+        return {"ok": False, "message": "Inserisci il nome del conducente."}
+    if not telefono:
+        return {"ok": False, "message": "Inserisci un numero WhatsApp valido."}
+
+    tratta = app_tables.tratte.get_by_id(tratta_id)
+    proprietario_tratta = tratta["conducente"] if tratta is not None else None
+    if (
+        tratta is None
+        or proprietario_tratta is None
+        or proprietario_tratta.get_id() != conducente.get_id()
+    ):
+        return {"ok": False, "message": "Non puoi modificare questa auto."}
+
+    tratta["nome_conducente"] = nome_conducente
+    contatto = next(iter(app_tables.tratte_contatti.search(tratta=tratta)), None)
+    if contatto is None:
+        app_tables.tratte_contatti.add_row(tratta=tratta, telefono_wa=telefono)
+    else:
+        contatto["telefono_wa"] = telefono
+    return {"ok": True}
+
+
 @anvil.tables.in_transaction
 def _crea_prenotazione(tratta_id, passeggero, nome_passeggero, telefono):
     tratta = app_tables.tratte.get_by_id(tratta_id)
@@ -219,10 +285,32 @@ def get_tratte_disponibili(tipo_tratta, zona=None):
             "luogo_appuntamento",
             "posti_totali",
             "posti_occupati",
+            "stato",
             "nome_conducente",
             conducente=q.fetch_only("email"),
         ),
         **filtri
+    )
+
+
+@anvil.server.callable(require_user=True)
+def get_auto_jolly_utente():
+    conducente = anvil.users.get_user()
+    return app_tables.tratte.search(
+        q.fetch_only(
+            "tipo_tratta",
+            "zona_partenza",
+            "data_tratta",
+            "orario",
+            "luogo_appuntamento",
+            "posti_totali",
+            "posti_occupati",
+            "stato",
+            "nome_conducente",
+            conducente=q.fetch_only("email"),
+        ),
+        conducente=conducente,
+        stato="Jolly",
     )
 
 
@@ -237,15 +325,33 @@ def _url_whatsapp(telefono):
 def get_chat_info_tratta(tratta_row):
     utente = anvil.users.get_user()
     if utente is None or tratta_row is None:
-        return {"prenotato": False, "passeggeri": [], "contatti": []}
+        return {
+            "prenotato": False,
+            "passeggeri": [],
+            "contatti": [],
+            "prenotazione": None,
+            "telefono_conducente": None,
+        }
 
     tratta = app_tables.tratte.get_by_id(tratta_row.get_id())
     if tratta is None:
-        return {"prenotato": False, "passeggeri": [], "contatti": []}
+        return {
+            "prenotato": False,
+            "passeggeri": [],
+            "contatti": [],
+            "prenotazione": None,
+            "telefono_conducente": None,
+        }
 
     conducente = tratta["conducente"]
     if conducente is None:
-        return {"prenotato": False, "passeggeri": [], "contatti": []}
+        return {
+            "prenotato": False,
+            "passeggeri": [],
+            "contatti": [],
+            "prenotazione": None,
+            "telefono_conducente": None,
+        }
 
     is_conducente = utente.get_id() == conducente.get_id()
     prenotazione_utente = next(
@@ -277,17 +383,33 @@ def get_chat_info_tratta(tratta_row):
         )
 
     contatti = []
-    if is_conducente or prenotazione_utente is None:
-        return {
-            "prenotato": False,
-            "passeggeri": passeggeri,
-            "contatti": [],
+    dati_prenotazione = None
+    if prenotazione_utente is not None:
+        dati_prenotazione = {
+            "id": prenotazione_utente.get_id(),
+            "nome": prenotazione_utente["nome_passeggero"] or "",
+            "telefono": prenotazione_utente["telefono_wa"] or "",
         }
 
-    contatto_conducente = next(
-        iter(app_tables.tratte_contatti.search(tratta=tratta)),
-        None,
-    )
+    telefono_conducente = None
+    if is_conducente:
+        contatto_conducente = next(
+            iter(app_tables.tratte_contatti.search(tratta=tratta)),
+            None,
+        )
+        if contatto_conducente is not None:
+            telefono_conducente = contatto_conducente["telefono_wa"]
+
+    if is_conducente or prenotazione_utente is None:
+        return {
+            "prenotato": prenotazione_utente is not None,
+            "passeggeri": passeggeri,
+            "contatti": [],
+            "prenotazione": dati_prenotazione,
+            "telefono_conducente": telefono_conducente,
+        }
+
+    contatto_conducente = next(iter(app_tables.tratte_contatti.search(tratta=tratta)), None)
     url = (
         _url_whatsapp(contatto_conducente["telefono_wa"])
         if contatto_conducente is not None
@@ -296,7 +418,13 @@ def get_chat_info_tratta(tratta_row):
     if url is not None:
         contatti.append({"text": "💬 Apri Chat WA — Conducente", "url": url})
 
-    return {"prenotato": True, "passeggeri": passeggeri, "contatti": contatti}
+    return {
+        "prenotato": True,
+        "passeggeri": passeggeri,
+        "contatti": contatti,
+        "prenotazione": dati_prenotazione,
+        "telefono_conducente": None,
+    }
 
 
 @anvil.server.callable

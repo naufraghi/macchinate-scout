@@ -27,6 +27,8 @@
   </div>
   <div class="ride-card-actions">
     <anvil-component type="Button" name="booking_button" prop:text="Prenota Posto" prop:role="ride-book-button"></anvil-component>
+    <anvil-component type="Button" name="edit_booking_button" prop:text="Modifica i tuoi dati passeggero" prop:visible="false" prop:role="ride-edit-button"></anvil-component>
+    <anvil-component type="Button" name="edit_ride_button" prop:text="Modifica nome e contatti" prop:visible="false" prop:role="ride-edit-button"></anvil-component>
     <div class="ride-passenger-list">
       <anvil-component type="Label" name="passengers_heading" prop:text="Passeggeri prenotati" prop:role="ride-passenger-heading"></anvil-component>
       <anvil-component type="RepeatingPanel" name="passengers_panel" prop:item_template="M3_App.RideChatLink" prop:role="ride-chat-links"></anvil-component>

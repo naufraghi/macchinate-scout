@@ -4,6 +4,7 @@ import anvil.server
 import anvil.users
 from .. import RideAuth
 from ..Components.BookingForm import BookingForm
+from ..Components.EditContactForm import EditContactForm
 
 
 class RideCard(RideCardTemplate):
@@ -11,6 +12,9 @@ class RideCard(RideCardTemplate):
     super().__init__(**properties)
 
     tratta = self.item
+    self._ride_id = tratta.get_id()
+    self._booking_info = None
+    self._driver_phone = ""
     conducente = tratta["conducente"]
     self.driver_label.text = (
       tratta["nome_conducente"]
@@ -36,17 +40,23 @@ class RideCard(RideCardTemplate):
       passeggeri = []
       contatti = []
       prenotato = False
+      is_driver = False
     else:
       info_chat = anvil.server.call("get_chat_info_tratta", tratta)
       passeggeri = info_chat["passeggeri"]
       contatti = info_chat["contatti"]
       prenotato = info_chat["prenotato"]
-    self.passengers_heading.visible = utente is not None
+      self._booking_info = info_chat.get("prenotazione")
+      telefono_conducente = info_chat.get("telefono_conducente") or ""
+      self._driver_phone = "+" + telefono_conducente if telefono_conducente else ""
+    self.passengers_heading.visible = bool(passeggeri)
     self.passengers_panel.items = passeggeri
     self.chat_contacts_panel.items = contatti
     self.booking_button.visible = (
-      posti_liberi > 0 and not is_driver and not prenotato
+      tratta["stato"] == "Attiva" and posti_liberi > 0 and not is_driver and not prenotato
     )
+    self.edit_booking_button.visible = self._booking_info is not None
+    self.edit_ride_button.visible = is_driver
 
   @handle("booking_button", "click")
   def booking_button_click(self, **event_args):
@@ -104,4 +114,73 @@ class RideCard(RideCardTemplate):
       return
 
     alert("Prenotazione confermata.", title="Posto prenotato")
+    self.parent.raise_event("x-refresh-rides")
+
+  @handle("edit_booking_button", "click")
+  def edit_booking_button_click(self, **event_args):
+    booking = self._booking_info
+    if booking is None:
+      return
+    form = EditContactForm(
+      contact_name_label="Il tuo nome",
+      contact_name=booking.get("nome", ""),
+      phone="+" + booking["telefono"] if booking.get("telefono") else "",
+    )
+    conferma = alert(
+      form,
+      title="Modifica i dati della prenotazione",
+      buttons=[("Salva", True), ("Annulla", False)],
+    )
+    if conferma is not True:
+      return
+
+    nome = (form.contact_name or "").strip()
+    telefono = (form.phone or "").strip()
+    if not nome or not telefono:
+      alert("Inserisci il nome e il numero WhatsApp.", title="Dati mancanti")
+      return
+
+    risultato = anvil.server.call(
+      "modifica_prenotazione",
+      booking["id"],
+      nome,
+      telefono,
+    )
+    if not risultato.get("ok"):
+      alert(risultato.get("message", "Non è stato possibile aggiornare i dati."))
+      return
+    alert("Dati della prenotazione aggiornati.", title="Modifica salvata")
+    self.parent.raise_event("x-refresh-rides")
+
+  @handle("edit_ride_button", "click")
+  def edit_ride_button_click(self, **event_args):
+    form = EditContactForm(
+      contact_name_label="Nome del conducente",
+      contact_name=self.item["nome_conducente"] or "",
+      phone=self._driver_phone,
+    )
+    conferma = alert(
+      form,
+      title="Modifica nome e contatti dell'auto",
+      buttons=[("Salva", True), ("Annulla", False)],
+    )
+    if conferma is not True:
+      return
+
+    nome = (form.contact_name or "").strip()
+    telefono = (form.phone or "").strip()
+    if not nome or not telefono:
+      alert("Inserisci il nome e il numero WhatsApp.", title="Dati mancanti")
+      return
+
+    risultato = anvil.server.call(
+      "modifica_contatti_tratta",
+      self._ride_id,
+      nome,
+      telefono,
+    )
+    if not risultato.get("ok"):
+      alert(risultato.get("message", "Non è stato possibile aggiornare i dati."))
+      return
+    alert("Nome e contatti dell'auto aggiornati.", title="Modifica salvata")
     self.parent.raise_event("x-refresh-rides")

@@ -556,6 +556,31 @@ color: %color:On Primary Container%;
   outline-offset: 2px;
 }
 
+.anvil-role-ride-edit-button > button {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid %color:Primary%;
+  border-radius: 999px;
+  color: %color:Primary%;
+  background: transparent;
+  font-weight: 600;
+}
+
+.anvil-role-ride-edit-button > button:hover,
+.anvil-role-ride-edit-button > button:focus-visible {
+  background: %color:Primary Container%;
+  outline: 2px solid %color:Primary%;
+  outline-offset: 2px;
+}
+
+.anvil-role-ride-owned-jolly-panel {
+  margin-top: 24px;
+  padding: 18px;
+  border: 1px solid %color:Surface Variant%;
+  border-radius: 15px;
+  background: %color:Surface%;
+}
+
 .anvil-role-ride-chat-links > div {
   display: flex;
   flex-wrap: wrap;

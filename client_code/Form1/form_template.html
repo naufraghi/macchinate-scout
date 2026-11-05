@@ -69,6 +69,12 @@
         </article>
       </div>
     </section>
+    <section aria-label="Le tue auto in standby" class="rides-owned-section">
+      <anvil-component type="ColumnPanel" name="owned_jolly_rides_panel" prop:visible="false" prop:role="ride-owned-jolly-panel">
+        <anvil-component type="Label" name="owned_jolly_heading" prop:text="Le tue auto in standby" prop:role="rides-section-title"></anvil-component>
+        <anvil-component type="RepeatingPanel" name="owned_jolly_list" prop:item_template="M3_App.RideCard" prop:role="ride-card-list"></anvil-component>
+      </anvil-component>
+    </section>
   </main>
   <anvil-component type="FlowPanel" name="navbar_links" prop:role="ride-login-bar" container:slot="nav-right">
     <anvil-component type="Label" name="user_label" prop:text="" prop:visible="false" prop:role="ride-user-label"></anvil-component>
