@@ -5,6 +5,7 @@ import anvil.users
 from .. import RideAuth
 from ..Components.CreateRideForm import CreateRideForm
 from ..Components.EmailLoginForm import EmailLoginForm
+from ..Components.LeafletMap import L
 from ..Components.PendingBookingForm import PendingBookingForm
 
 
@@ -40,8 +41,7 @@ class Form1(Form1Template):
       "Ti registri come riserva: riceverai un'email quando le auto attive per "
       "zona e tratta avranno esaurito i posti, così potrai attivare la tua."
     )
-    self.torino_map.center = GoogleMap.LatLng(45.0703, 7.6869)
-    self.torino_map.zoom = 12
+    self._leaflet_map = None
     self._map_markers = []
 
     self.zone_dropdown.items = ["Tutte le zone"] + self.ZONE_NAMES
@@ -52,9 +52,27 @@ class Form1(Form1Template):
     self.add_event_handler("x-refresh-rides", self.refresh_rides_event)
 
   def form_show(self, **event_args):
+    self._ensure_map()
     self._refresh_login_controls()
     self._refresh_board()
     self._resume_pending_action()
+
+  def _ensure_map(self):
+    if self._leaflet_map is None:
+      self._leaflet_map = L.map(self.torino_map.map_node).setView(
+        list(self.TORINO_CENTER), 12
+      )
+      L.tileLayer(
+        "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        {
+          "maxZoom": 19,
+          "detectRetina": True,
+          "attribution": '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          "referrerPolicy": "strict-origin-when-cross-origin",
+        },
+      ).addTo(self._leaflet_map)
+    else:
+      self._leaflet_map.invalidateSize()
 
   def _selected_trip_type(self):
     return "ritorno" if self.return_radio.selected else "andata"
@@ -86,7 +104,7 @@ class Form1(Form1Template):
 
   def _refresh_map_markers(self, tratte):
     for marker in self._map_markers:
-      marker.remove_from_parent()
+      marker.remove()
     self._map_markers = []
 
     auto_per_zona = {}
@@ -96,12 +114,20 @@ class Form1(Form1Template):
 
     for zona, numero_auto in auto_per_zona.items():
       lat, lng = self.ZONE_COORDINATES.get(zona, self.TORINO_CENTER)
-      marker = GoogleMap.Marker(
-        position=GoogleMap.LatLng(lat, lng),
-        title="{} · {} auto".format(zona, numero_auto),
-        label=str(numero_auto),
+      title = "{} · {} auto".format(zona, numero_auto)
+      marker = L.marker(
+        [lat, lng],
+        {"title": title},
       )
-      self.torino_map.add_component(marker)
+      marker.addTo(self._leaflet_map)
+      marker.bindTooltip(
+        str(numero_auto),
+        {
+          "permanent": True,
+          "direction": "center",
+          "className": "ride-map-marker-label",
+        },
+      )
       self._map_markers.append(marker)
 
   def _refresh_login_controls(self):
