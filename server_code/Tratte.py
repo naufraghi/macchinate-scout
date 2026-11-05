@@ -7,6 +7,8 @@ from anvil.tables import app_tables
 from datetime import date
 import secrets
 
+_EMAIL_FROM_ADDRESS = "matteo+macchinate@slug.it"
+
 
 def _normalizza_telefono_wa(telefono):
     if not telefono:
@@ -176,6 +178,7 @@ def _prenota_posto(tratta_id, nome_passeggero, telefono):
 
     anvil.email.send(
         to=email_passeggero,
+        from_address=_EMAIL_FROM_ADDRESS,
         subject="Conferma prenotazione posto",
         text=(
             "La tua prenotazione è confermata.\n"
@@ -188,6 +191,7 @@ def _prenota_posto(tratta_id, nome_passeggero, telefono):
     )
     anvil.email.send(
         to=email_conducente,
+        from_address=_EMAIL_FROM_ADDRESS,
         subject="Nuova prenotazione per la tua tratta",
         text=(
             "{} ha prenotato un posto nella tua tratta.\n"
@@ -327,6 +331,7 @@ def verifica_esubero_jolly(zona, tipo_tratta):
 
         anvil.email.send(
             to=email,
+            from_address=_EMAIL_FROM_ADDRESS,
             subject="Attiva la tua auto per questa tratta",
             text=(
                 "Le auto attive per la zona {} e il tipo di tratta {} "

@@ -140,7 +140,7 @@ services:
   server_config: {}
   source: /runtime/services/tables.yml
 - client_config: {allow_remember_me: true, allow_signup: true, confirm_email: false, enable_automatically: true, remember_me_days: 30, use_email: true, use_token: true}
-  server_config: {user_table: users}
+  server_config: {email_from_address: matteo+macchinate@slug.it, user_table: users}
   source: /runtime/services/anvil/users.yml
 - client_config: {}
   server_config: {custom_smtp: true, smtp_encryption: starttls, smtp_host: mail.infomaniak.com, smtp_password: 2+m9jxfldGX/dDiUw8cAn4Sr6u9DNhIE2Df+HBwlaIWLPTmLI9HH/dJNfRjI7lZxuiJBl1hOkwGSWa3TZ+DrVRXmX3KCMDIj70D/xV0Do0R/NTXQMbSv5UPP4+pHL6njdtUtO0Dd9rZckyc2UlLv3rnjeHJ6I+SXQtlgbnmyFX1yNlI87nhZoWs=, smtp_port: 587, smtp_user: matteo@slug.it}
