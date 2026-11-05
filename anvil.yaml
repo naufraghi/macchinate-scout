@@ -14,6 +14,10 @@ db_schema:
       target: users
       type: link_single
     - admin_ui: {order: 2, width: 200}
+      client_hidden: true
+      name: nome_passeggero
+      type: string
+    - admin_ui: {order: 3, width: 200}
       client_hidden: false
       name: telefono_wa
       type: string

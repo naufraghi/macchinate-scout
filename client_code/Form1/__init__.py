@@ -127,8 +127,31 @@ class Form1(Form1Template):
     if kind == "offer":
       self._publish_ride(action, user, pending=True)
     elif kind == "booking":
+      nome_passeggero = (action.get("name") or "").strip()
+      if not nome_passeggero:
+        name_input = TextBox(placeholder="es. Maria Rossi")
+        content = ColumnPanel()
+        content.add_component(Label(text="Inserisci il tuo nome per completare la prenotazione."))
+        content.add_component(name_input)
+        conferma = alert(
+          content,
+          title="Nome richiesto",
+          buttons=[("Continua", True), ("Annulla", False)],
+        )
+        if conferma is not True:
+          return
+        nome_passeggero = (name_input.text or "").strip()
+        if not nome_passeggero:
+          alert("Inserisci il tuo nome.", title="Nome richiesto")
+          return
+        action["name"] = nome_passeggero
+        RideAuth.save_pending_action(action)
+
       result = anvil.server.call(
-        "prenota_posto_per_id", action.get("ride_id"), action.get("phone")
+        "prenota_posto_per_id",
+        action.get("ride_id"),
+        nome_passeggero,
+        action.get("phone"),
       )
       if not result.get("ok"):
         alert(result.get("message", "Non è stato possibile prenotare il posto."))

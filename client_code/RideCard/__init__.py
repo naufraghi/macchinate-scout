@@ -47,8 +47,11 @@ class RideCard(RideCardTemplate):
   def booking_button_click(self, **event_args):
     user = anvil.users.get_user()
 
+    name_input = TextBox(placeholder="es. Maria Rossi")
     phone_input = TextBox(placeholder="es. +39 333 1234567")
     content = ColumnPanel()
+    content.add_component(Label(text="Il tuo nome"))
+    content.add_component(name_input)
     content.add_component(Label(text="Telefono WhatsApp per la prenotazione"))
     content.add_component(phone_input)
     email_input = TextBox(placeholder="nome@esempio.it")
@@ -71,6 +74,11 @@ class RideCard(RideCardTemplate):
     if conferma is not True:
       return
 
+    nome = (name_input.text or "").strip()
+    if not nome:
+      alert("Inserisci il tuo nome.", title="Nome richiesto")
+      return
+
     telefono = (phone_input.text or "").strip()
     if not telefono:
       alert("Inserisci il tuo numero WhatsApp.", title="Numero richiesto")
@@ -84,6 +92,7 @@ class RideCard(RideCardTemplate):
       action = {
         "kind": "booking",
         "ride_id": self.item.get_id(),
+        "name": nome,
         "phone": telefono,
       }
       result = RideAuth.request_email_access(email, action)
@@ -97,7 +106,7 @@ class RideCard(RideCardTemplate):
       )
       return
 
-    risultato = anvil.server.call("prenota_posto", self.item, telefono)
+    risultato = anvil.server.call("prenota_posto", self.item, nome, telefono)
     if not risultato.get("ok"):
       alert(risultato.get("message", "Non è stato possibile prenotare il posto."))
       return

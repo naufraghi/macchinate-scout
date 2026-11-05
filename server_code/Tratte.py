@@ -105,7 +105,7 @@ def crea_tratta(
 
 
 @anvil.tables.in_transaction
-def _crea_prenotazione(tratta_id, passeggero, telefono):
+def _crea_prenotazione(tratta_id, passeggero, nome_passeggero, telefono):
     tratta = app_tables.tratte.get_by_id(tratta_id)
     if tratta is None or tratta["stato"] != "Attiva":
         return None, "La tratta non è attiva o non esiste."
@@ -124,31 +124,38 @@ def _crea_prenotazione(tratta_id, passeggero, telefono):
     prenotazione = app_tables.prenotazioni.add_row(
         tratta=tratta,
         passeggero=passeggero,
+        nome_passeggero=nome_passeggero,
         telefono_wa=telefono,
     )
     return (prenotazione, tratta["conducente"]), None
 
 
 @anvil.server.callable(require_user=True)
-def prenota_posto(tratta_row, telefono):
-    return _prenota_posto(tratta_row.get_id(), telefono)
+def prenota_posto(tratta_row, nome_passeggero, telefono):
+    return _prenota_posto(tratta_row.get_id(), nome_passeggero, telefono)
 
 
 @anvil.server.callable(require_user=True)
-def prenota_posto_per_id(tratta_id, telefono):
-    return _prenota_posto(tratta_id, telefono)
+def prenota_posto_per_id(tratta_id, nome_passeggero, telefono):
+    return _prenota_posto(tratta_id, nome_passeggero, telefono)
 
 
-def _prenota_posto(tratta_id, telefono):
+def _prenota_posto(tratta_id, nome_passeggero, telefono):
     passeggero = anvil.users.get_user()
     if passeggero is None:
         return {"ok": False, "message": "Devi accedere per prenotare un posto."}
+
+    nome_passeggero = (nome_passeggero or "").strip()
+    if not nome_passeggero:
+        return {"ok": False, "message": "Inserisci il tuo nome."}
 
     telefono = _normalizza_telefono_wa(telefono)
     if not telefono:
         return {"ok": False, "message": "Inserisci un numero WhatsApp valido."}
 
-    risultato, messaggio_errore = _crea_prenotazione(tratta_id, passeggero, telefono)
+    risultato, messaggio_errore = _crea_prenotazione(
+        tratta_id, passeggero, nome_passeggero, telefono
+    )
     if risultato is None:
         return {"ok": False, "message": messaggio_errore}
 
@@ -172,22 +179,23 @@ def _prenota_posto(tratta_id, telefono):
         subject="Conferma prenotazione posto",
         text=(
             "La tua prenotazione è confermata.\n"
+            "Nome: {}\n"
             "Zona: {}\nData: {}\nOrario: {}\nLuogo dell'appuntamento: {}\n"
             "Tipo di tratta: {}\n"
             "Numero WhatsApp: {}"
-        ).format(zona, data_tratta_testo, orario, luogo_appuntamento,
-                 tipo_tratta, telefono),
+        ).format(nome_passeggero, zona, data_tratta_testo, orario,
+                 luogo_appuntamento, tipo_tratta, telefono),
     )
     anvil.email.send(
         to=email_conducente,
         subject="Nuova prenotazione per la tua tratta",
         text=(
-            "Un passeggero ha prenotato un posto nella tua tratta.\n"
+            "{} ha prenotato un posto nella tua tratta.\n"
             "Zona: {}\nData: {}\nOrario: {}\nLuogo dell'appuntamento: {}\n"
             "Tipo di tratta: {}\n"
             "Numero WhatsApp del passeggero: {}"
-        ).format(zona, data_tratta_testo, orario, luogo_appuntamento,
-                 tipo_tratta, telefono),
+        ).format(nome_passeggero, zona, data_tratta_testo, orario,
+                 luogo_appuntamento, tipo_tratta, telefono),
     )
 
     return {"ok": True, "prenotazione": prenotazione}
@@ -237,7 +245,11 @@ def get_chat_info_tratta(tratta_row):
 
     if utente.get_id() == conducente.get_id():
         prenotazioni = app_tables.prenotazioni.search(
-            q.fetch_only("telefono_wa", passeggero=q.fetch_only("email")),
+            q.fetch_only(
+                "telefono_wa",
+                "nome_passeggero",
+                passeggero=q.fetch_only("email"),
+            ),
             tratta=tratta,
         )
         contatti = []
@@ -246,7 +258,11 @@ def get_chat_info_tratta(tratta_row):
             url = _url_whatsapp(prenotazione["telefono_wa"])
             if passeggero is None or url is None:
                 continue
-            nome = passeggero["email"] or "passeggero"
+            nome = (
+                prenotazione["nome_passeggero"]
+                or passeggero["email"]
+                or "passeggero"
+            )
             contatti.append(
                 {"text": "💬 Apri Chat WA — {}".format(nome), "url": url}
             )
