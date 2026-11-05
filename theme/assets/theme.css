@@ -527,6 +527,18 @@ color: %color:On Primary Container%;
   margin-top: 14px;
 }
 
+.ride-passenger-list {
+  display: grid;
+  flex-basis: 100%;
+  gap: 8px;
+}
+
+.anvil-role-ride-passenger-heading {
+  color: %color:On Surface Variant%;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .anvil-role-ride-book-button > button {
   min-height: 38px;
   padding: 0 16px;

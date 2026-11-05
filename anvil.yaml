@@ -143,6 +143,6 @@ services:
   server_config: {user_table: users}
   source: /runtime/services/anvil/users.yml
 - client_config: {}
-  server_config: {}
+  server_config: {custom_smtp: true, smtp_encryption: starttls, smtp_host: mail.infomaniak.com, smtp_password: 2+m9jxfldGX/dDiUw8cAn4Sr6u9DNhIE2Df+HBwlaIWLPTmLI9HH/dJNfRjI7lZxuiJBl1hOkwGSWa3TZ+DrVRXmX3KCMDIj70D/xV0Do0R/NTXQMbSv5UPP4+pHL6njdtUtO0Dd9rZckyc2UlLv3rnjeHJ6I+SXQtlgbnmyFX1yNlI87nhZoWs=, smtp_port: 587, smtp_user: matteo@slug.it}
   source: /runtime/services/anvil/email.yml
 startup_form: Form1

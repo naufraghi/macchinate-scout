@@ -233,47 +233,52 @@ def _url_whatsapp(telefono):
 def get_chat_info_tratta(tratta_row):
     utente = anvil.users.get_user()
     if utente is None or tratta_row is None:
-        return {"prenotato": False, "contatti": []}
+        return {"prenotato": False, "passeggeri": [], "contatti": []}
 
     tratta = app_tables.tratte.get_by_id(tratta_row.get_id())
     if tratta is None:
-        return {"prenotato": False, "contatti": []}
+        return {"prenotato": False, "passeggeri": [], "contatti": []}
 
     conducente = tratta["conducente"]
     if conducente is None:
-        return {"prenotato": False, "contatti": []}
+        return {"prenotato": False, "passeggeri": [], "contatti": []}
 
-    if utente.get_id() == conducente.get_id():
-        prenotazioni = app_tables.prenotazioni.search(
-            q.fetch_only(
-                "telefono_wa",
-                "nome_passeggero",
-                passeggero=q.fetch_only("email"),
-            ),
-            tratta=tratta,
-        )
-        contatti = []
-        for prenotazione in prenotazioni:
-            passeggero = prenotazione["passeggero"]
-            url = _url_whatsapp(prenotazione["telefono_wa"])
-            if passeggero is None or url is None:
-                continue
-            nome = (
-                prenotazione["nome_passeggero"]
-                or passeggero["email"]
-                or "passeggero"
-            )
-            contatti.append(
-                {"text": "💬 Apri Chat WA — {}".format(nome), "url": url}
-            )
-        return {"prenotato": False, "contatti": contatti}
-
-    prenotazione = next(
+    is_conducente = utente.get_id() == conducente.get_id()
+    prenotazione_utente = next(
         iter(app_tables.prenotazioni.search(tratta=tratta, passeggero=utente)),
         None,
     )
-    if prenotazione is None:
-        return {"prenotato": False, "contatti": []}
+
+    prenotazioni = app_tables.prenotazioni.search(
+        q.fetch_only(
+            "telefono_wa",
+            "nome_passeggero",
+            passeggero=q.fetch_only("email"),
+        ),
+        tratta=tratta,
+    )
+    passeggeri = []
+    for prenotazione in prenotazioni:
+        passeggero = prenotazione["passeggero"]
+        url = _url_whatsapp(prenotazione["telefono_wa"])
+        if passeggero is None or url is None:
+            continue
+        nome = (
+            prenotazione["nome_passeggero"]
+            or passeggero["email"]
+            or "passeggero"
+        )
+        passeggeri.append(
+            {"text": "💬 Apri Chat WA — {}".format(nome), "url": url}
+        )
+
+    contatti = []
+    if is_conducente or prenotazione_utente is None:
+        return {
+            "prenotato": False,
+            "passeggeri": passeggeri,
+            "contatti": [],
+        }
 
     contatto_conducente = next(
         iter(app_tables.tratte_contatti.search(tratta=tratta)),
@@ -284,13 +289,10 @@ def get_chat_info_tratta(tratta_row):
         if contatto_conducente is not None
         else None
     )
-    if url is None:
-        return {"prenotato": True, "contatti": []}
+    if url is not None:
+        contatti.append({"text": "💬 Apri Chat WA — Conducente", "url": url})
 
-    return {
-        "prenotato": True,
-        "contatti": [{"text": "💬 Apri Chat WA", "url": url}],
-    }
+    return {"prenotato": True, "passeggeri": passeggeri, "contatti": contatti}
 
 
 @anvil.server.callable
