@@ -189,6 +189,8 @@ def _crea_prenotazione(tratta_id, passeggero, nome_passeggero, telefono):
         return None, "La tratta non ha più posti disponibili."
 
     tratta["posti_occupati"] += 1
+    if tratta["posti_occupati"] >= tratta["posti_totali"]:
+        tratta["stato"] = "Completa"
     prenotazione = app_tables.prenotazioni.add_row(
         tratta=tratta,
         passeggero=passeggero,
