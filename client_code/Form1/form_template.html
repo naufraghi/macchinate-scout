@@ -6,7 +6,7 @@
       <h1>Un passaggio per ogni attività</h1>
       <p>Offri un posto in auto o trova un passaggio per raggiungere la prossima attività.</p>
     </section>
-
+  
     <section aria-labelledby="rides-role-title" class="rides-role-section">
       <div class="rides-section-heading">
         <div>
@@ -17,10 +17,10 @@
       <div class="rides-role-buttons">
         <anvil-component type="Button" name="offer_button" prop:text="Offro Passaggio" prop:role="ride-role-button-selected"></anvil-component>
         <anvil-component type="Button" name="seek_button" prop:text="Cerco Passaggio" prop:role="ride-role-button"></anvil-component>
-        <anvil-component type="Button" name="jolly_button" prop:text="Sono Driver Jolly" prop:role="ride-role-button"></anvil-component>
+        <anvil-component type="Button" name="jolly_button" prop:text="Forse ho l'auto" prop:role="ride-role-button"></anvil-component>
       </div>
     </section>
-
+  
     <section aria-labelledby="rides-board-title" class="rides-board-section">
       <div class="rides-board-heading">
         <div>
@@ -29,7 +29,7 @@
         </div>
         <p class="rides-board-hint">Filtra le tratte disponibili per direzione e zona.</p>
       </div>
-
+    
       <div class="rides-filter-card">
         <fieldset class="rides-direction-filter">
           <legend>Direzione</legend>
@@ -43,7 +43,7 @@
           <anvil-component type="DropDown" name="zone_dropdown" prop:role="ride-zone-dropdown"></anvil-component>
         </div>
       </div>
-
+    
       <div class="rides-board-grid">
         <article aria-labelledby="rides-map-title" class="rides-map-card">
           <div class="rides-card-heading">
@@ -55,7 +55,7 @@
           </div>
           <anvil-component type="GoogleMap" name="torino_map" prop:role="torino-map" prop:height="420px"></anvil-component>
         </article>
-
+      
         <article aria-labelledby="rides-list-title" class="rides-list-card">
           <div class="rides-card-heading rides-list-heading">
             <div>
