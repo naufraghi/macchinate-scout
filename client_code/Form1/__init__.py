@@ -44,18 +44,7 @@ class Form1(Form1Template):
     self.torino_map.zoom = 12
     self._map_markers = []
 
-    self.zone_dropdown.items = [
-      "Tutte le zone",
-      "Cenisia",
-      "San Donato",
-      "Moncalieri",
-      "Collegno",
-      "Chivasso",
-      "Centro",
-      "San Salvario",
-      "Vanchiglia",
-      "Mirafiori",
-    ]
+    self.zone_dropdown.items = ["Tutte le zone"] + self.ZONE_NAMES
     self.zone_dropdown.selected_value = "Tutte le zone"
     self.rides_panel.items = []
     self._refresh_login_controls()
