@@ -3,6 +3,7 @@ from anvil import *
 import anvil.server
 import anvil.users
 from .. import RideAuth
+from ..Components.BookingForm import BookingForm
 
 
 class RideCard(RideCardTemplate):
@@ -50,46 +51,33 @@ class RideCard(RideCardTemplate):
   @handle("booking_button", "click")
   def booking_button_click(self, **event_args):
     user = anvil.users.get_user()
-
-    name_input = TextBox(placeholder="es. Maria Rossi")
-    phone_input = TextBox(placeholder="es. +39 333 1234567")
-    content = ColumnPanel()
-    content.add_component(Label(text="Il tuo nome"))
-    content.add_component(name_input)
-    content.add_component(Label(text="Telefono WhatsApp per la prenotazione"))
-    content.add_component(phone_input)
-    email_input = TextBox(placeholder="nome@esempio.it")
+    email_prompt = ""
     if user is None:
-      content.add_component(
-        Label(
-          text=(
-            "Inserisci la tua email per ricevere un link di accesso. "
-            "La prenotazione verrà completata al rientro."
-          )
-        )
+      email_prompt = (
+        "Inserisci la tua email per ricevere un link di accesso. "
+        "La prenotazione verrà completata al rientro."
       )
-      content.add_component(Label(text="Email"))
-      content.add_component(email_input)
+    form = BookingForm(email_prompt=email_prompt)
     conferma = alert(
-      content,
+      form,
       title="Prenota un posto",
       buttons=[("Prenota", True), ("Annulla", False)],
     )
     if conferma is not True:
       return
 
-    nome = (name_input.text or "").strip()
+    nome = (form.passenger_name or "").strip()
     if not nome:
       alert("Inserisci il tuo nome.", title="Nome richiesto")
       return
 
-    telefono = (phone_input.text or "").strip()
+    telefono = (form.phone or "").strip()
     if not telefono:
       alert("Inserisci il tuo numero WhatsApp.", title="Numero richiesto")
       return
 
     if user is None:
-      email = (email_input.text or "").strip().lower()
+      email = (form.email or "").strip().lower()
       if "@" not in email:
         alert("Inserisci un indirizzo email valido.", title="Email richiesta")
         return

@@ -1,0 +1,11 @@
+---
+custom_component: true
+properties:
+- name: email
+  type: string
+---
+<anvil-form container="ColumnPanel">
+  <anvil-component type="Label" name="instructions_label" prop:text="Ricevi un link per accedere o confermare il tuo account."></anvil-component>
+  <anvil-component type="Label" name="email_label" prop:text="Email"></anvil-component>
+  <anvil-component type="TextBox" name="email_input" prop:placeholder="nome@esempio.it"></anvil-component>
+</anvil-form>

@@ -1,0 +1,47 @@
+---
+custom_component: true
+properties:
+- name: zone_names
+  type: string
+- name: driver_name
+  type: string
+- name: date_iso
+  type: string
+- name: time
+  type: string
+- name: meeting_place
+  type: string
+- name: seats
+  type: string
+- name: trip_type
+  type: string
+- name: phone
+  type: string
+- name: email
+  type: string
+- name: email_prompt
+  type: string
+- name: zone
+  type: string
+---
+<anvil-form container="ColumnPanel">
+  <anvil-component type="Label" name="email_prompt_label" prop:visible="false"></anvil-component>
+  <anvil-component type="Label" name="email_label" prop:text="Email" prop:visible="false"></anvil-component>
+  <anvil-component type="TextBox" name="email_input" prop:placeholder="nome@esempio.it" prop:visible="false"></anvil-component>
+  <anvil-component type="Label" name="driver_name_label" prop:text="Nome conducente"></anvil-component>
+  <anvil-component type="TextBox" name="driver_name_input"></anvil-component>
+  <anvil-component type="Label" name="zone_label" prop:text="Zona di partenza"></anvil-component>
+  <anvil-component type="DropDown" name="zone_input"></anvil-component>
+  <anvil-component type="Label" name="date_label" prop:text="Data"></anvil-component>
+  <anvil-component type="DatePicker" name="date_input"></anvil-component>
+  <anvil-component type="Label" name="time_label" prop:text="Orario"></anvil-component>
+  <anvil-component type="TextBox" name="time_input" prop:placeholder="es. 09:30"></anvil-component>
+  <anvil-component type="Label" name="meeting_place_label" prop:text="Luogo preciso dell'appuntamento"></anvil-component>
+  <anvil-component type="TextBox" name="meeting_place_input" prop:placeholder="es. Piazza Castello, ingresso lato nord"></anvil-component>
+  <anvil-component type="Label" name="seats_label" prop:text="Posti totali"></anvil-component>
+  <anvil-component type="TextBox" name="seats_input" prop:placeholder="Numero di posti" prop:type="number"></anvil-component>
+  <anvil-component type="Label" name="trip_type_label" prop:text="Tipo tratta"></anvil-component>
+  <anvil-component type="DropDown" name="trip_type_input"></anvil-component>
+  <anvil-component type="Label" name="phone_label" prop:text="Telefono WhatsApp del conducente"></anvil-component>
+  <anvil-component type="TextBox" name="phone_input" prop:placeholder="es. +39 333 1234567"></anvil-component>
+</anvil-form>

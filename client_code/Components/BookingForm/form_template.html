@@ -1,0 +1,21 @@
+---
+custom_component: true
+properties:
+- name: passenger_name
+  type: string
+- name: phone
+  type: string
+- name: email
+  type: string
+- name: email_prompt
+  type: string
+---
+<anvil-form container="ColumnPanel">
+  <anvil-component type="Label" name="email_prompt_label" prop:visible="false"></anvil-component>
+  <anvil-component type="Label" name="name_label" prop:text="Il tuo nome"></anvil-component>
+  <anvil-component type="TextBox" name="name_input" prop:placeholder="es. Maria Rossi"></anvil-component>
+  <anvil-component type="Label" name="phone_label" prop:text="Telefono WhatsApp per la prenotazione"></anvil-component>
+  <anvil-component type="TextBox" name="phone_input" prop:placeholder="es. +39 333 1234567"></anvil-component>
+  <anvil-component type="Label" name="email_label" prop:text="Email" prop:visible="false"></anvil-component>
+  <anvil-component type="TextBox" name="email_input" prop:placeholder="nome@esempio.it" prop:visible="false"></anvil-component>
+</anvil-form>

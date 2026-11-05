@@ -2,8 +2,10 @@ from ._anvil_designer import Form1Template
 from anvil import *
 import anvil.server
 import anvil.users
-import anvil.js
 from .. import RideAuth
+from ..Components.CreateRideForm import CreateRideForm
+from ..Components.EmailLoginForm import EmailLoginForm
+from ..Components.PendingBookingForm import PendingBookingForm
 
 
 class Form1(Form1Template):
@@ -129,18 +131,15 @@ class Form1(Form1Template):
     elif kind == "booking":
       nome_passeggero = (action.get("name") or "").strip()
       if not nome_passeggero:
-        name_input = TextBox(placeholder="es. Maria Rossi")
-        content = ColumnPanel()
-        content.add_component(Label(text="Inserisci il tuo nome per completare la prenotazione."))
-        content.add_component(name_input)
+        form = PendingBookingForm()
         conferma = alert(
-          content,
+          form,
           title="Nome richiesto",
           buttons=[("Continua", True), ("Annulla", False)],
         )
         if conferma is not True:
           return
-        nome_passeggero = (name_input.text or "").strip()
+        nome_passeggero = (form.passenger_name or "").strip()
         if not nome_passeggero:
           alert("Inserisci il tuo nome.", title="Nome richiesto")
           return
@@ -183,64 +182,26 @@ class Form1(Form1Template):
     self._open_create_ride_dialog(is_jolly=True)
 
   def _open_create_ride_dialog(self, is_jolly):
-    zone_input = DropDown(items=self.ZONE_NAMES)
-    zone_input.selected_value = self.ZONE_NAMES[0]
-    name_input = TextBox()
     user = anvil.users.get_user()
-    email_input = TextBox(placeholder="nome@esempio.it")
     display_name = ""
     if user is not None:
       email = user["email"]
       if email:
         display_name = email.split("@")[0]
-    name_input.text = display_name
-    date_input = DatePicker()
-    time_input = TextBox(placeholder="es. 09:30")
-    meeting_place_input = TextBox(placeholder="es. Piazza Castello, ingresso lato nord")
-    seats_input = TextBox(placeholder="Numero di posti", type="number")
-    trip_type_input = DropDown(items=["andata", "ritorno"])
-    trip_type_input.selected_value = "andata"
-    phone_input = TextBox(placeholder="es. +39 333 1234567")
-
-    content = ColumnPanel()
+    email_prompt = ""
     if user is None:
-      content.add_component(
-        Label(
-          text=(
-            "Inserisci la tua email: riceverai un link per accedere o confermare "
-            "il nuovo account. Al rientro il passaggio verrà pubblicato."
-          )
-        )
+      email_prompt = (
+        "Inserisci la tua email: riceverai un link per accedere o confermare "
+        "il nuovo account. Al rientro il passaggio verrà pubblicato."
       )
-      content.add_component(Label(text="Email"))
-      content.add_component(email_input)
-    content.add_component(Label(text="Nome conducente"))
-    content.add_component(name_input)
-    content.add_component(Label(text="Zona di partenza"))
-    content.add_component(zone_input)
-    content.add_component(Label(text="Data"))
-    content.add_component(date_input)
-    content.add_component(Label(text="Orario"))
-    content.add_component(time_input)
-    content.add_component(Label(text="Luogo preciso dell'appuntamento"))
-    content.add_component(meeting_place_input)
-    content.add_component(Label(text="Posti totali"))
-    content.add_component(seats_input)
-    seats_input_element = anvil.js.get_dom_node(seats_input)
-    if seats_input_element.tagName != "INPUT":
-      seats_input_element = seats_input_element.querySelector("input")
-      if seats_input_element is None:
-        raise RuntimeError("Impossibile trovare l'input numerico dei posti.")
-    seats_input_element.setAttribute("min", "1")
-    seats_input_element.setAttribute("max", "8")
-    seats_input_element.setAttribute("step", "1")
-    content.add_component(Label(text="Tipo tratta"))
-    content.add_component(trip_type_input)
-    content.add_component(Label(text="Telefono WhatsApp del conducente"))
-    content.add_component(phone_input)
+    form = CreateRideForm(
+      zone_names="|".join(self.ZONE_NAMES),
+      driver_name=display_name,
+      email_prompt=email_prompt,
+    )
 
     conferma = alert(
-      content,
+      form,
       title="Pubblica una tratta",
       buttons=[("Pubblica", True), ("Annulla", False)],
       large=True,
@@ -248,14 +209,14 @@ class Form1(Form1Template):
     if conferma is not True:
       return
 
-    zona = zone_input.selected_value
-    nome_conducente = (name_input.text or "").strip()
-    data_tratta = date_input.date
-    orario = (time_input.text or "").strip()
-    luogo_appuntamento = (meeting_place_input.text or "").strip()
-    tipo_tratta = trip_type_input.selected_value
-    telefono = (phone_input.text or "").strip()
-    posti_input = seats_input.text
+    zona = form.zone
+    nome_conducente = (form.driver_name or "").strip()
+    data_tratta = form.date_iso
+    orario = (form.time or "").strip()
+    luogo_appuntamento = (form.meeting_place or "").strip()
+    tipo_tratta = form.trip_type
+    telefono = (form.phone or "").strip()
+    posti_input = form.seats
     try:
       posti = int(posti_input)
     except (TypeError, ValueError):
@@ -280,14 +241,14 @@ class Form1(Form1Template):
       return
 
     if user is None:
-      email = (email_input.text or "").strip().lower()
+      email = (form.email or "").strip().lower()
       if "@" not in email:
         alert("Inserisci un indirizzo email valido.", title="Email richiesta")
         return
       action = {
         "kind": "offer",
         "zone": zona,
-        "date": data_tratta.isoformat(),
+        "date": data_tratta,
         "time": orario,
         "meeting_place": luogo_appuntamento,
         "seats": posti,
@@ -310,7 +271,7 @@ class Form1(Form1Template):
     action = {
       "kind": "offer",
       "zone": zona,
-      "date": data_tratta.isoformat(),
+      "date": data_tratta,
       "time": orario,
       "meeting_place": luogo_appuntamento,
       "seats": posti,
@@ -377,19 +338,15 @@ class Form1(Form1Template):
   @handle("login_button", "click")
   def login_button_click(self, **event_args):
     if anvil.users.get_user() is None:
-      email_input = TextBox(placeholder="nome@esempio.it")
-      content = ColumnPanel()
-      content.add_component(Label(text="Ricevi un link per accedere o confermare il tuo account."))
-      content.add_component(Label(text="Email"))
-      content.add_component(email_input)
+      form = EmailLoginForm()
       conferma = alert(
-        content,
+        form,
         title="Accedi con email",
         buttons=[("Invia link", True), ("Annulla", False)],
       )
       if conferma is not True:
         return
-      email = (email_input.text or "").strip().lower()
+      email = (form.email or "").strip().lower()
       if "@" not in email:
         alert("Inserisci un indirizzo email valido.", title="Email richiesta")
         return

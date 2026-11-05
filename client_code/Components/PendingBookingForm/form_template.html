@@ -1,0 +1,10 @@
+---
+custom_component: true
+properties:
+- name: passenger_name
+  type: string
+---
+<anvil-form container="ColumnPanel">
+  <anvil-component type="Label" name="instructions_label" prop:text="Inserisci il tuo nome per completare la prenotazione."></anvil-component>
+  <anvil-component type="TextBox" name="name_input" prop:placeholder="es. Maria Rossi"></anvil-component>
+</anvil-form>
