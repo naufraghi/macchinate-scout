@@ -43,6 +43,7 @@ class Form1(Form1Template):
     )
     self._leaflet_map = None
     self._map_markers = []
+    self._map_view_initialized = False
 
     self.zone_dropdown.items = ["Tutte le zone"] + self.ZONE_NAMES
     self.zone_dropdown.selected_value = "Tutte le zone"
@@ -82,16 +83,23 @@ class Form1(Form1Template):
     return None if selected == "Tutte le zone" else selected
 
   def _refresh_board(self):
+    tipo_tratta = self._selected_trip_type()
+    zona_selezionata = self._selected_zone()
     tratte = list(
       anvil.server.call(
         "get_tratte_disponibili",
-        self._selected_trip_type(),
-        self._selected_zone(),
+        tipo_tratta,
+        zona_selezionata,
       )
     )
     self.rides_panel.items = tratte
     self.empty_state.visible = not tratte
-    self._refresh_map_markers(tratte)
+    tratte_per_mappa = tratte
+    if zona_selezionata is not None:
+      tratte_per_mappa = list(
+        anvil.server.call("get_tratte_disponibili", tipo_tratta, None)
+      )
+    self._refresh_map_markers(tratte_per_mappa)
     self._refresh_owned_jolly_rides()
 
   def _refresh_owned_jolly_rides(self):
@@ -107,17 +115,25 @@ class Form1(Form1Template):
       marker.remove()
     self._map_markers = []
 
-    auto_per_zona = {}
+    auto_per_zona = {zona: 0 for zona in self.ZONE_NAMES}
     for tratta in tratte:
       zona = tratta["zona_partenza"]
-      auto_per_zona[zona] = auto_per_zona.get(zona, 0) + 1
+      if zona in auto_per_zona:
+        auto_per_zona[zona] += 1
 
-    for zona, numero_auto in auto_per_zona.items():
+    for zona in self.ZONE_NAMES:
+      numero_auto = auto_per_zona[zona]
       lat, lng = self.ZONE_COORDINATES.get(zona, self.TORINO_CENTER)
-      title = "{} · {} auto".format(zona, numero_auto)
-      marker = L.marker(
+      colore = "#2e7d32" if numero_auto > 0 else "#64748b"
+      marker = L.circleMarker(
         [lat, lng],
-        {"title": title},
+        {
+          "radius": 11,
+          "color": colore,
+          "fillColor": colore,
+          "fillOpacity": 0.9,
+          "weight": 2,
+        },
       )
       marker.addTo(self._leaflet_map)
       marker.bindTooltip(
@@ -129,6 +145,16 @@ class Form1(Form1Template):
         },
       )
       self._map_markers.append(marker)
+
+    if not self._map_view_initialized and self._leaflet_map is not None:
+      coordinate_zones = [
+        list(self.ZONE_COORDINATES[zona]) for zona in self.ZONE_NAMES
+      ]
+      self._leaflet_map.fitBounds(
+        coordinate_zones,
+        {"padding": [24, 24], "maxZoom": 12},
+      )
+      self._map_view_initialized = True
 
   def _refresh_login_controls(self):
     user = anvil.users.get_user()
