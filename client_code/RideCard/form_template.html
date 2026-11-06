@@ -1,6 +1,6 @@
 <article class="ride-card">
   <div class="ride-card-topline">
-    <anvil-component type="Label" name="zone_label" bind:text="self.item['zona_partenza']" prop:role="ride-card-zone"></anvil-component>
+    <anvil-component type="Label" name="meeting_place_label" prop:role="ride-card-place"></anvil-component>
     <anvil-component type="Label" name="direction_label" bind:text="self.item['tipo_tratta']" prop:role="ride-card-direction"></anvil-component>
   </div>
   <div class="ride-card-details">
@@ -11,10 +11,6 @@
     <div class="ride-card-detail">
       <span>Conducente</span>
       <anvil-component type="Label" name="driver_label" prop:role="ride-card-value"></anvil-component>
-    </div>
-    <div class="ride-card-detail">
-      <span>Luogo dell'appuntamento</span>
-      <anvil-component type="Label" name="meeting_place_label" prop:role="ride-card-value"></anvil-component>
     </div>
     <div class="ride-card-detail">
       <span>Orario</span>

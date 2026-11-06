@@ -25,7 +25,7 @@ class RideCard(RideCardTemplate):
       data_tratta.strftime("%d/%m/%Y") if data_tratta is not None else "Data non indicata"
     )
     self.meeting_place_label.text = (
-      tratta["luogo_appuntamento"] or "Luogo non specificato"
+      tratta["luogo_appuntamento"] or "Punto indicato sulla mappa"
     )
     posti_liberi = max(0, tratta["posti_totali"] - tratta["posti_occupati"])
     self.free_seats_label.text = str(posti_liberi)

@@ -41,20 +41,21 @@ def inizia_accesso_email(email):
 
 @anvil.tables.in_transaction
 def _salva_tratta(
-    zona, data_tratta, orario, luogo_appuntamento, posti, tipo_tratta, is_jolly,
-    nome_conducente, conducente, telefono
+    data_tratta, orario, luogo_appuntamento, lat_partenza, lng_partenza, posti,
+    tipo_tratta, nome_conducente, conducente, telefono
 ):
     tratta = app_tables.tratte.add_row(
         conducente=conducente,
         nome_conducente=nome_conducente,
-        zona_partenza=zona,
         data_tratta=data_tratta,
         orario=orario,
         luogo_appuntamento=luogo_appuntamento,
+        lat_partenza=lat_partenza,
+        lng_partenza=lng_partenza,
         posti_totali=posti,
         posti_occupati=0,
         tipo_tratta=tipo_tratta,
-        stato="Jolly" if is_jolly else "Attiva",
+        stato="Attiva",
     )
     app_tables.tratte_contatti.add_row(tratta=tratta, telefono_wa=telefono)
     return tratta
@@ -62,8 +63,8 @@ def _salva_tratta(
 
 @anvil.server.callable(require_user=True)
 def crea_tratta(
-    zona, data_tratta, orario, luogo_appuntamento, posti, tipo_tratta, is_jolly,
-    nome_conducente, telefono_wa
+    data_tratta, orario, luogo_appuntamento, lat_partenza, lng_partenza, posti,
+    tipo_tratta, nome_conducente, telefono_wa
 ):
     conducente = anvil.users.get_user()
     telefono = _normalizza_telefono_wa(telefono_wa)
@@ -75,16 +76,24 @@ def crea_tratta(
         except ValueError:
             return {"ok": False, "message": "La data della tratta non è valida."}
     nome_conducente = (nome_conducente or "").strip()
+    orario = (orario or "").strip()
     luogo_appuntamento = (luogo_appuntamento or "").strip()
+    try:
+        lat_partenza = float(lat_partenza)
+        lng_partenza = float(lng_partenza)
+    except (TypeError, ValueError):
+        return {"ok": False, "message": "Seleziona un punto valido sulla mappa."}
+
     if (
         not nome_conducente
-        or not zona
         or not isinstance(data_tratta, date)
         or not orario
-        or not luogo_appuntamento
         or tipo_tratta not in ("andata", "ritorno")
     ):
         return {"ok": False, "message": "I dati della tratta non sono validi."}
+    if not (-90 <= lat_partenza <= 90) or not (-180 <= lng_partenza <= 180):
+        return {"ok": False, "message": "Le coordinate del punto non sono valide."}
+
     try:
         posti = int(posti)
     except (TypeError, ValueError):
@@ -93,13 +102,13 @@ def crea_tratta(
         return {"ok": False, "message": "La tratta deve avere almeno un posto."}
 
     return _salva_tratta(
-        zona,
         data_tratta,
         orario,
         luogo_appuntamento,
+        lat_partenza,
+        lng_partenza,
         posti,
         tipo_tratta,
-        bool(is_jolly),
         nome_conducente,
         conducente,
         telefono,
@@ -231,7 +240,6 @@ def _prenota_posto(tratta_id, nome_passeggero, telefono):
 
     prenotazione, conducente = risultato
     tratta = prenotazione["tratta"]
-    zona = tratta["zona_partenza"]
     data_tratta = tratta["data_tratta"]
     data_tratta_testo = (
         data_tratta.strftime("%d/%m/%Y")
@@ -239,7 +247,11 @@ def _prenota_posto(tratta_id, nome_passeggero, telefono):
         else "Data non indicata"
     )
     orario = tratta["orario"]
-    luogo_appuntamento = tratta["luogo_appuntamento"]
+    luogo_appuntamento = (
+        tratta["luogo_appuntamento"] or "Punto indicato sulla mappa"
+    )
+    url_mappa = _url_mappa(tratta["lat_partenza"], tratta["lng_partenza"])
+    riga_mappa = "Punto sulla mappa: {}\n".format(url_mappa) if url_mappa else ""
     tipo_tratta = tratta["tipo_tratta"]
     email_passeggero = passeggero["email"]
     email_conducente = conducente["email"]
@@ -251,11 +263,18 @@ def _prenota_posto(tratta_id, nome_passeggero, telefono):
         text=(
             "La tua prenotazione è confermata.\n"
             "Nome: {}\n"
-            "Zona: {}\nData: {}\nOrario: {}\nLuogo dell'appuntamento: {}\n"
+            "Data: {}\nOrario: {}\nLuogo dell'appuntamento: {}\n{}"
             "Tipo di tratta: {}\n"
             "Numero WhatsApp: {}"
-        ).format(nome_passeggero, zona, data_tratta_testo, orario,
-                 luogo_appuntamento, tipo_tratta, telefono),
+        ).format(
+            nome_passeggero,
+            data_tratta_testo,
+            orario,
+            luogo_appuntamento,
+            riga_mappa,
+            tipo_tratta,
+            telefono,
+        ),
     )
     anvil.email.send(
         to=email_conducente,
@@ -263,28 +282,34 @@ def _prenota_posto(tratta_id, nome_passeggero, telefono):
         subject="Nuova prenotazione per la tua tratta",
         text=(
             "{} ha prenotato un posto nella tua tratta.\n"
-            "Zona: {}\nData: {}\nOrario: {}\nLuogo dell'appuntamento: {}\n"
+            "Data: {}\nOrario: {}\nLuogo dell'appuntamento: {}\n{}"
             "Tipo di tratta: {}\n"
             "Numero WhatsApp del passeggero: {}"
-        ).format(nome_passeggero, zona, data_tratta_testo, orario,
-                 luogo_appuntamento, tipo_tratta, telefono),
+        ).format(
+            nome_passeggero,
+            data_tratta_testo,
+            orario,
+            luogo_appuntamento,
+            riga_mappa,
+            tipo_tratta,
+            telefono,
+        ),
     )
 
     return {"ok": True, "prenotazione": prenotazione}
 
 
 @anvil.server.callable
-def get_tratte_disponibili(tipo_tratta, zona=None):
+def get_tratte_disponibili(tipo_tratta):
     filtri = {"stato": "Attiva", "tipo_tratta": tipo_tratta}
-    if zona is not None:
-        filtri["zona_partenza"] = zona
     return app_tables.tratte.search(
         q.fetch_only(
             "tipo_tratta",
-            "zona_partenza",
             "data_tratta",
             "orario",
             "luogo_appuntamento",
+            "lat_partenza",
+            "lng_partenza",
             "posti_totali",
             "posti_occupati",
             "stato",
@@ -295,32 +320,22 @@ def get_tratte_disponibili(tipo_tratta, zona=None):
     )
 
 
-@anvil.server.callable(require_user=True)
-def get_auto_jolly_utente():
-    conducente = anvil.users.get_user()
-    return app_tables.tratte.search(
-        q.fetch_only(
-            "tipo_tratta",
-            "zona_partenza",
-            "data_tratta",
-            "orario",
-            "luogo_appuntamento",
-            "posti_totali",
-            "posti_occupati",
-            "stato",
-            "nome_conducente",
-            conducente=q.fetch_only("email"),
-        ),
-        conducente=conducente,
-        stato="Jolly",
-    )
-
-
 def _url_whatsapp(telefono):
     telefono_normalizzato = _normalizza_telefono_wa(telefono)
     if telefono_normalizzato is None:
         return None
     return "https://wa.me/{}".format(telefono_normalizzato)
+
+
+def _url_mappa(latitudine, longitudine):
+    if latitudine is None or longitudine is None:
+        return None
+    latitudine = float(latitudine)
+    longitudine = float(longitudine)
+    return (
+        "https://www.openstreetmap.org/?mlat={0:.6f}&mlon={1:.6f}"
+        "#map=17/{0:.6f}/{1:.6f}"
+    ).format(latitudine, longitudine)
 
 
 @anvil.server.callable
@@ -427,47 +442,3 @@ def get_chat_info_tratta(tratta_row):
         "prenotazione": dati_prenotazione,
         "telefono_conducente": None,
     }
-
-
-@anvil.server.callable
-def verifica_esubero_jolly(zona, tipo_tratta):
-    tratte_attive = list(
-        app_tables.tratte.search(
-            stato="Attiva",
-            zona_partenza=zona,
-            tipo_tratta=tipo_tratta,
-        )
-    )
-    if not tratte_attive or any(
-        tratta["posti_occupati"] < tratta["posti_totali"]
-        for tratta in tratte_attive
-    ):
-        return 0
-
-    email_inviate = set()
-    tratte_jolly = app_tables.tratte.search(
-        stato="Jolly",
-        zona_partenza=zona,
-        tipo_tratta=tipo_tratta,
-    )
-    for tratta in tratte_jolly:
-        conducente = tratta["conducente"]
-        if conducente is None:
-            continue
-
-        email = conducente["email"]
-        if not email or email in email_inviate:
-            continue
-
-        anvil.email.send(
-            to=email,
-            from_address=_EMAIL_FROM_ADDRESS,
-            subject="Attiva la tua auto per questa tratta",
-            text=(
-                "Le auto attive per la zona {} e il tipo di tratta {} "
-                "hanno esaurito i posti disponibili. Se puoi, attiva la tua auto."
-            ).format(zona, tipo_tratta),
-        )
-        email_inviate.add(email)
-
-    return len(email_inviate)

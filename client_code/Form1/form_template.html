@@ -17,7 +17,6 @@
       <div class="rides-role-buttons">
         <anvil-component type="Button" name="offer_button" prop:text="Offro Passaggio" prop:role="ride-role-button-selected"></anvil-component>
         <anvil-component type="Button" name="seek_button" prop:text="Cerco Passaggio" prop:role="ride-role-button"></anvil-component>
-        <anvil-component type="Button" name="jolly_button" prop:text="Forse ho l'auto" prop:role="ride-role-button"></anvil-component>
       </div>
     </section>
 
@@ -27,7 +26,7 @@
           <p class="rides-eyebrow">BACHECA</p>
           <h2 id="rides-board-title">Trova un passaggio</h2>
         </div>
-        <p class="rides-board-hint">Filtra le tratte disponibili per direzione e zona.</p>
+        <p class="rides-board-hint">Filtra le tratte disponibili per direzione.</p>
       </div>
 
       <div class="rides-filter-card">
@@ -38,10 +37,6 @@
             <anvil-component type="RadioButton" name="return_radio" prop:text="Ritorno" prop:group_name="ride-direction" prop:value="ritorno"></anvil-component>
           </div>
         </fieldset>
-        <div class="rides-zone-filter">
-          <label>Zona di partenza</label>
-          <anvil-component type="DropDown" name="zone_dropdown" prop:role="ride-zone-dropdown"></anvil-component>
-        </div>
       </div>
 
       <div class="rides-board-grid">
@@ -51,7 +46,7 @@
               <p class="rides-eyebrow">TORINO E DINTORNI</p>
               <h3 id="rides-map-title">Mappa dei passaggi</h3>
             </div>
-            <span class="rides-map-caption">Verde: auto disponibili · Grigio: 0 auto</span>
+            <span class="rides-map-caption">Ogni punto indica un luogo di partenza</span>
           </div>
           <anvil-component type="M3_App.Components.LeafletMap" name="torino_map" prop:role="torino-map"></anvil-component>
         </article>
@@ -65,15 +60,9 @@
             <span class="rides-list-count">Bacheca</span>
           </div>
           <anvil-component type="RepeatingPanel" name="rides_panel" prop:item_template="M3_App.RideCard" prop:role="ride-card-list"></anvil-component>
-          <anvil-component type="Label" name="empty_state" prop:text="Le auto disponibili appariranno qui. Quando una tratta viene pubblicata, troverai data, orario, luogo dell'appuntamento, zona e posti liberi." prop:role="rides-empty-state"></anvil-component>
+          <anvil-component type="Label" name="empty_state" prop:text="Le auto disponibili appariranno qui. Quando una tratta viene pubblicata, troverai data, orario, luogo dell'appuntamento e posti liberi." prop:role="rides-empty-state"></anvil-component>
         </article>
       </div>
-    </section>
-    <section aria-label="Le tue auto in standby" class="rides-owned-section">
-      <anvil-component type="ColumnPanel" name="owned_jolly_rides_panel" prop:visible="false" prop:role="ride-owned-jolly-panel">
-        <anvil-component type="Label" name="owned_jolly_heading" prop:text="Le tue auto in standby" prop:role="rides-section-title"></anvil-component>
-        <anvil-component type="RepeatingPanel" name="owned_jolly_list" prop:item_template="M3_App.RideCard" prop:role="ride-card-list"></anvil-component>
-      </anvil-component>
     </section>
   </main>
   <anvil-component type="FlowPanel" name="navbar_links" prop:role="ride-login-bar" container:slot="nav-right">

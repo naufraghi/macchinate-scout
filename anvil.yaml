@@ -67,6 +67,14 @@ db_schema:
       client_hidden: false
       name: stato
       type: string
+    - admin_ui: {order: 10, width: 200}
+      client_hidden: false
+      name: lat_partenza
+      type: number
+    - admin_ui: {order: 11, width: 200}
+      client_hidden: false
+      name: lng_partenza
+      type: number
     server: full
     title: Tratte
   tratte_contatti:

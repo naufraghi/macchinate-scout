@@ -254,7 +254,7 @@ color: %color:On Primary Container%;
 
 .rides-role-buttons {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   margin-top: 16px;
 }
@@ -316,9 +316,9 @@ color: %color:On Primary Container%;
 
 .rides-filter-card {
   display: grid;
-  grid-template-columns: minmax(260px, 1fr) minmax(220px, 0.8fr);
+  grid-template-columns: minmax(0, 1fr);
   align-items: end;
-  gap: 26px;
+  gap: 16px;
   padding: 18px 22px;
 }
 
@@ -329,8 +329,7 @@ color: %color:On Primary Container%;
   border: 0;
 }
 
-.rides-direction-filter legend,
-.rides-zone-filter > label {
+.rides-direction-filter legend {
   margin: 0 0 10px;
   color: %color:On Surface Variant%;
   font-size: 12px;
@@ -346,31 +345,6 @@ color: %color:On Primary Container%;
 
 .rides-direction-options .radio {
   margin: 0;
-}
-
-.rides-zone-filter {
-  min-width: 0;
-}
-
-.rides-zone-filter > label {
-  display: block;
-}
-
-.anvil-role-ride-zone-dropdown select {
-  width: 100%;
-  min-height: 44px;
-  padding: 8px 38px 8px 12px;
-  border: 1px solid %color:Outline%;
-  border-radius: 11px;
-  color: %color:On Surface%;
-  background-color: %color:Surface%;
-  font: inherit;
-}
-
-.anvil-role-ride-zone-dropdown select:focus-visible {
-  border-color: %color:Primary%;
-  outline: 2px solid %color:Primary%;
-  outline-offset: 2px;
 }
 
 .rides-board-grid {
@@ -418,6 +392,53 @@ color: %color:On Primary Container%;
   height: 420px;
   overflow: hidden;
   border-radius: 14px;
+}
+
+.ride-map-picker-hint {
+  margin: 0 0 8px;
+  color: %color:On Surface Variant%;
+  font-size: 13px;
+}
+
+.ride-location-picker {
+  position: relative;
+  margin-bottom: 10px;
+}
+
+.ride-location-picker .anvil-role-ride-departure-picker {
+  display: block;
+  width: 100%;
+}
+
+.ride-location-picker .rides-leaflet-map {
+  height: 250px;
+}
+
+.ride-map-center-pointer {
+  position: absolute;
+  z-index: 700;
+  top: 50%;
+  left: 50%;
+  width: 22px;
+  height: 22px;
+  border: 3px solid %color:Primary%;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.65);
+  box-shadow: 0 0 0 2px white, 0 2px 8px rgba(25, 24, 35, 0.35);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+.ride-map-center-pointer::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: %color:Primary%;
+  content: "";
+  transform: translate(-50%, -50%);
 }
 
 .leaflet-tooltip.ride-map-marker-label {
@@ -497,7 +518,7 @@ color: %color:On Primary Container%;
   gap: 12px;
 }
 
-.anvil-role-ride-card-zone {
+.anvil-role-ride-card-place {
   color: %color:On Surface%;
   font-size: 16px;
   font-weight: 700;
@@ -588,14 +609,6 @@ color: %color:On Primary Container%;
   background: %color:Primary Container%;
   outline: 2px solid %color:Primary%;
   outline-offset: 2px;
-}
-
-.anvil-role-ride-owned-jolly-panel {
-  margin-top: 24px;
-  padding: 18px;
-  border: 1px solid %color:Surface Variant%;
-  border-radius: 15px;
-  background: %color:Surface%;
 }
 
 .anvil-role-ride-chat-links > div {

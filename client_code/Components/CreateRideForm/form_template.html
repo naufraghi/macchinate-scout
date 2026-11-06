@@ -1,8 +1,6 @@
 ---
 custom_component: true
 properties:
-- name: zone_names
-  type: string
 - name: driver_name
   type: string
 - name: date_iso
@@ -21,8 +19,6 @@ properties:
   type: string
 - name: email_prompt
   type: string
-- name: zone
-  type: string
 ---
 <anvil-form container="ColumnPanel">
   <anvil-component type="Label" name="email_prompt_label" prop:visible="false"></anvil-component>
@@ -30,14 +26,18 @@ properties:
   <anvil-component type="TextBox" name="email_input" prop:placeholder="nome@esempio.it" prop:visible="false"></anvil-component>
   <anvil-component type="Label" name="driver_name_label" prop:text="Nome conducente"></anvil-component>
   <anvil-component type="TextBox" name="driver_name_input"></anvil-component>
-  <anvil-component type="Label" name="zone_label" prop:text="Zona di partenza"></anvil-component>
-  <anvil-component type="DropDown" name="zone_input"></anvil-component>
+  <anvil-component type="Label" name="departure_map_label" prop:text="Punto di partenza"></anvil-component>
+  <p class="ride-map-picker-hint">Sposta la mappa finché il punto d'incontro si trova sotto il puntatore al centro.</p>
+  <div class="ride-location-picker">
+    <anvil-component type="M3_App.Components.LeafletMap" name="departure_map" prop:role="ride-departure-picker"></anvil-component>
+    <span aria-hidden="true" class="ride-map-center-pointer"></span>
+  </div>
   <anvil-component type="Label" name="date_label" prop:text="Data"></anvil-component>
   <anvil-component type="DatePicker" name="date_input"></anvil-component>
   <anvil-component type="Label" name="time_label" prop:text="Orario"></anvil-component>
   <anvil-component type="TextBox" name="time_input" prop:placeholder="es. 09:30"></anvil-component>
-  <anvil-component type="Label" name="meeting_place_label" prop:text="Luogo preciso dell'appuntamento"></anvil-component>
-  <anvil-component type="TextBox" name="meeting_place_input" prop:placeholder="es. Piazza Castello, ingresso lato nord"></anvil-component>
+  <anvil-component type="Label" name="meeting_place_label" prop:text="Indicazioni aggiuntive (facoltative)"></anvil-component>
+  <anvil-component type="TextBox" name="meeting_place_input" prop:placeholder="es. ingresso lato nord"></anvil-component>
   <anvil-component type="Label" name="seats_label" prop:text="Posti totali"></anvil-component>
   <anvil-component type="TextBox" name="seats_input" prop:placeholder="Numero di posti" prop:type="number"></anvil-component>
   <anvil-component type="Label" name="trip_type_label" prop:text="Tipo tratta"></anvil-component>

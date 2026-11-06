@@ -10,43 +10,15 @@ from ..Components.PendingBookingForm import PendingBookingForm
 
 
 class Form1(Form1Template):
-  ZONE_NAMES = [
-    "Cenisia",
-    "San Donato",
-    "Moncalieri",
-    "Collegno",
-    "Chivasso",
-    "Centro",
-    "San Salvario",
-    "Vanchiglia",
-    "Mirafiori",
-  ]
-  ZONE_COORDINATES = {
-    "Cenisia": (45.0739, 7.6523),
-    "San Donato": (45.0837, 7.6669),
-    "Moncalieri": (44.9995, 7.6820),
-    "Collegno": (45.0780, 7.5770),
-    "Chivasso": (45.1900, 7.8890),
-    "Centro": (45.0703, 7.6869),
-    "San Salvario": (45.0530, 7.6820),
-    "Vanchiglia": (45.0750, 7.6980),
-    "Mirafiori": (45.0190, 7.6350),
-  }
   TORINO_CENTER = (45.0703, 7.6869)
 
   def __init__(self, **properties):
     super().__init__(**properties)
 
-    self.jolly_button.tooltip = (
-      "Ti registri come riserva: riceverai un'email quando le auto attive per "
-      "zona e tratta avranno esaurito i posti, così potrai attivare la tua."
-    )
     self._leaflet_map = None
     self._map_markers = []
     self._map_view_initialized = False
 
-    self.zone_dropdown.items = ["Tutte le zone"] + self.ZONE_NAMES
-    self.zone_dropdown.selected_value = "Tutte le zone"
     self.rides_panel.items = []
     self._refresh_login_controls()
     self.add_event_handler("show", self.form_show)
@@ -78,82 +50,64 @@ class Form1(Form1Template):
   def _selected_trip_type(self):
     return "ritorno" if self.return_radio.selected else "andata"
 
-  def _selected_zone(self):
-    selected = self.zone_dropdown.selected_value
-    return None if selected == "Tutte le zone" else selected
-
   def _refresh_board(self):
     tipo_tratta = self._selected_trip_type()
-    zona_selezionata = self._selected_zone()
     tratte = list(
       anvil.server.call(
         "get_tratte_disponibili",
         tipo_tratta,
-        zona_selezionata,
       )
     )
     self.rides_panel.items = tratte
     self.empty_state.visible = not tratte
-    tratte_per_mappa = tratte
-    if zona_selezionata is not None:
-      tratte_per_mappa = list(
-        anvil.server.call("get_tratte_disponibili", tipo_tratta, None)
-      )
-    self._refresh_map_markers(tratte_per_mappa)
-    self._refresh_owned_jolly_rides()
-
-  def _refresh_owned_jolly_rides(self):
-    user = anvil.users.get_user()
-    tratte_jolly = (
-      list(anvil.server.call("get_auto_jolly_utente")) if user is not None else []
-    )
-    self.owned_jolly_list.items = tratte_jolly
-    self.owned_jolly_rides_panel.visible = bool(tratte_jolly)
+    self._refresh_map_markers(tratte)
 
   def _refresh_map_markers(self, tratte):
     for marker in self._map_markers:
       marker.remove()
     self._map_markers = []
 
-    auto_per_zona = {zona: 0 for zona in self.ZONE_NAMES}
+    coordinate_partenze = []
     for tratta in tratte:
-      zona = tratta["zona_partenza"]
-      if zona in auto_per_zona:
-        auto_per_zona[zona] += 1
+      lat = tratta["lat_partenza"]
+      lng = tratta["lng_partenza"]
+      if lat is None or lng is None:
+        continue
 
-    for zona in self.ZONE_NAMES:
-      numero_auto = auto_per_zona[zona]
-      lat, lng = self.ZONE_COORDINATES.get(zona, self.TORINO_CENTER)
-      colore = "#2e7d32" if numero_auto > 0 else "#64748b"
+      coordinate = [lat, lng]
+      coordinate_partenze.append(coordinate)
       marker = L.circleMarker(
-        [lat, lng],
+        coordinate,
         {
           "radius": 11,
-          "color": colore,
-          "fillColor": colore,
+          "color": "#2e7d32",
+          "fillColor": "#2e7d32",
           "fillOpacity": 0.9,
           "weight": 2,
         },
       )
       marker.addTo(self._leaflet_map)
       marker.bindTooltip(
-        str(numero_auto),
+        tratta["luogo_appuntamento"] or "Punto di partenza",
         {
-          "permanent": True,
-          "direction": "center",
+          "direction": "top",
           "className": "ride-map-marker-label",
         },
       )
       self._map_markers.append(marker)
 
-    if not self._map_view_initialized and self._leaflet_map is not None:
-      coordinate_zones = [
-        list(self.ZONE_COORDINATES[zona]) for zona in self.ZONE_NAMES
-      ]
-      self._leaflet_map.fitBounds(
-        coordinate_zones,
-        {"padding": [24, 24], "maxZoom": 12},
-      )
+    if (
+      not self._map_view_initialized
+      and self._leaflet_map is not None
+      and coordinate_partenze
+    ):
+      if len(coordinate_partenze) == 1:
+        self._leaflet_map.setView(coordinate_partenze[0], 13)
+      else:
+        self._leaflet_map.fitBounds(
+          coordinate_partenze,
+          {"padding": [24, 24], "maxZoom": 13},
+        )
       self._map_view_initialized = True
 
   def _refresh_login_controls(self):
@@ -177,6 +131,16 @@ class Form1(Form1Template):
 
     kind = action.get("kind")
     if kind == "offer":
+      if (
+        action.get("lat_partenza") is None
+        or action.get("lng_partenza") is None
+      ):
+        RideAuth.clear_pending_action()
+        alert(
+          "La vecchia bozza non contiene il punto sulla mappa. Ripubblica la tratta.",
+          title="Bozza da aggiornare",
+        )
+        return
       self._publish_ride(action, user, pending=True)
     elif kind == "booking":
       nome_passeggero = (action.get("name") or "").strip()
@@ -212,7 +176,7 @@ class Form1(Form1Template):
       RideAuth.clear_pending_action()
 
   def _select_role(self, selected_button):
-    for button in (self.offer_button, self.seek_button, self.jolly_button):
+    for button in (self.offer_button, self.seek_button):
       button.role = (
         "ride-role-button-selected" if button is selected_button else "ride-role-button"
       )
@@ -220,18 +184,13 @@ class Form1(Form1Template):
   @handle("offer_button", "click")
   def offer_button_click(self, **event_args):
     self._select_role(self.offer_button)
-    self._open_create_ride_dialog(is_jolly=False)
+    self._open_create_ride_dialog()
 
   @handle("seek_button", "click")
   def seek_button_click(self, **event_args):
     self._select_role(self.seek_button)
 
-  @handle("jolly_button", "click")
-  def jolly_button_click(self, **event_args):
-    self._select_role(self.jolly_button)
-    self._open_create_ride_dialog(is_jolly=True)
-
-  def _open_create_ride_dialog(self, is_jolly):
+  def _open_create_ride_dialog(self):
     user = anvil.users.get_user()
     display_name = ""
     if user is not None:
@@ -245,7 +204,6 @@ class Form1(Form1Template):
         "il nuovo account. Al rientro il passaggio verrà pubblicato."
       )
     form = CreateRideForm(
-      zone_names="|".join(self.ZONE_NAMES),
       driver_name=display_name,
       email_prompt=email_prompt,
     )
@@ -259,7 +217,7 @@ class Form1(Form1Template):
     if conferma is not True:
       return
 
-    zona = form.zone
+    coordinate_partenza = form.get_departure_coordinates()
     nome_conducente = (form.driver_name or "").strip()
     data_tratta = form.date_iso
     orario = (form.time or "").strip()
@@ -277,10 +235,8 @@ class Form1(Form1Template):
       return
 
     if (
-      not zona
-      or not data_tratta
+      not data_tratta
       or not orario
-      or not luogo_appuntamento
       or not tipo_tratta
       or not telefono
     ):
@@ -290,6 +246,14 @@ class Form1(Form1Template):
       )
       return
 
+    if coordinate_partenza is None:
+      alert(
+        "Attendi il caricamento della mappa e seleziona il punto d'incontro.",
+        title="Punto richiesto",
+      )
+      return
+
+    lat_partenza, lng_partenza = coordinate_partenza
     if user is None:
       email = (form.email or "").strip().lower()
       if "@" not in email:
@@ -297,13 +261,13 @@ class Form1(Form1Template):
         return
       action = {
         "kind": "offer",
-        "zone": zona,
         "date": data_tratta,
         "time": orario,
         "meeting_place": luogo_appuntamento,
+        "lat_partenza": lat_partenza,
+        "lng_partenza": lng_partenza,
         "seats": posti,
         "trip_type": tipo_tratta,
-        "is_jolly": is_jolly,
         "driver_name": nome_conducente,
         "phone": telefono,
       }
@@ -320,13 +284,13 @@ class Form1(Form1Template):
 
     action = {
       "kind": "offer",
-      "zone": zona,
       "date": data_tratta,
       "time": orario,
       "meeting_place": luogo_appuntamento,
+      "lat_partenza": lat_partenza,
+      "lng_partenza": lng_partenza,
       "seats": posti,
       "trip_type": tipo_tratta,
-      "is_jolly": is_jolly,
       "driver_name": nome_conducente,
       "phone": telefono,
     }
@@ -344,13 +308,13 @@ class Form1(Form1Template):
 
     risultato = anvil.server.call(
       "crea_tratta",
-      action["zone"],
       action["date"],
       action["time"],
       action["meeting_place"],
+      action["lat_partenza"],
+      action["lng_partenza"],
       action["seats"],
       action["trip_type"],
-      action["is_jolly"],
       nome_conducente,
       action["phone"],
     )
@@ -361,12 +325,7 @@ class Form1(Form1Template):
     if pending:
       RideAuth.clear_pending_action()
 
-    messaggio = (
-      "Auto salvata come Driver Jolly."
-      if action["is_jolly"]
-      else "Tratta pubblicata nella bacheca."
-    )
-    alert(messaggio, title="Operazione completata")
+    alert("Tratta pubblicata nella bacheca.", title="Operazione completata")
     self._refresh_board()
     return True
 
@@ -376,10 +335,6 @@ class Form1(Form1Template):
 
   @handle("return_radio", "change")
   def return_radio_change(self, **event_args):
-    self._refresh_board()
-
-  @handle("zone_dropdown", "change")
-  def zone_dropdown_change(self, **event_args):
     self._refresh_board()
 
   def refresh_rides_event(self, **event_args):

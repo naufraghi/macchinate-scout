@@ -3,11 +3,13 @@ from datetime import date
 from ._anvil_designer import CreateRideFormTemplate
 from anvil import *
 import anvil.js
+from ..LeafletMap import L
 
 
 class CreateRideForm(CreateRideFormTemplate):
+  TORINO_CENTER = (45.0703, 7.6869)
+
   def __init__(self, **properties):
-    self._zone_names = "Cenisia"
     self._driver_name = ""
     self._date_iso = ""
     self._time = ""
@@ -17,13 +19,14 @@ class CreateRideForm(CreateRideFormTemplate):
     self._phone = ""
     self._email = ""
     self._email_prompt = ""
-    self._zone = ""
+    self._map_picker = None
     self._components_initialized = False
     super().__init__(**properties)
     self._components_initialized = True
     self.trip_type_input.items = ["andata", "ritorno"]
     self._apply_values()
     self._set_seat_limits()
+    self.add_event_handler("show", self._ensure_picker_map)
 
   def _apply_values(self):
     self.driver_name_input.text = self._driver_name
@@ -38,11 +41,29 @@ class CreateRideForm(CreateRideFormTemplate):
     self.email_prompt_label.visible = bool(self._email_prompt)
     self.email_label.visible = bool(self._email_prompt)
     self.email_input.visible = bool(self._email_prompt)
-    self.zone_input.items = [name for name in self._zone_names.split("|") if name]
-    if self._zone:
-      self.zone_input.selected_value = self._zone
-    elif self.zone_input.items:
-      self.zone_input.selected_value = self.zone_input.items[0]
+
+  def _ensure_picker_map(self, **event_args):
+    if self._map_picker is None:
+      self._map_picker = L.map(self.departure_map.map_node).setView(
+        list(self.TORINO_CENTER), 13
+      )
+      L.tileLayer(
+        "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        {
+          "maxZoom": 19,
+          "detectRetina": True,
+          "attribution": '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+          "referrerPolicy": "strict-origin-when-cross-origin",
+        },
+      ).addTo(self._map_picker)
+    else:
+      self._map_picker.invalidateSize()
+
+  def get_departure_coordinates(self):
+    if self._map_picker is None:
+      return None
+    center = self._map_picker.getCenter()
+    return float(center.lat), float(center.lng)
 
   def _parse_date(self, value):
     if not value:
@@ -59,18 +80,6 @@ class CreateRideForm(CreateRideFormTemplate):
     seats_input_element.setAttribute("min", "1")
     seats_input_element.setAttribute("max", "8")
     seats_input_element.setAttribute("step", "1")
-
-  @property
-  def zone_names(self):
-    return self._zone_names
-
-  @zone_names.setter
-  def zone_names(self, value):
-    self._zone_names = "Cenisia" if value is None else str(value)
-    if self._components_initialized:
-      self.zone_input.items = [name for name in self._zone_names.split("|") if name]
-      if self.zone_input.items:
-        self.zone_input.selected_value = self.zone_input.items[0]
 
   @property
   def driver_name(self):
@@ -165,13 +174,3 @@ class CreateRideForm(CreateRideFormTemplate):
       self.email_prompt_label.visible = bool(self._email_prompt)
       self.email_label.visible = bool(self._email_prompt)
       self.email_input.visible = bool(self._email_prompt)
-
-  @property
-  def zone(self):
-    return self.zone_input.selected_value or ""
-
-  @zone.setter
-  def zone(self, value):
-    self._zone = "" if value is None else str(value)
-    if self._components_initialized:
-      self.zone_input.selected_value = self._zone
