@@ -524,6 +524,14 @@ color: %color:On Primary Container%;
   font-weight: 700;
 }
 
+.anvil-role-ride-card-note {
+  display: block;
+  margin-top: 8px;
+  color: %color:On Surface Variant%;
+  font-size: 13px;
+  white-space: pre-wrap;
+}
+
 .anvil-role-ride-card-direction {
   padding: 3px 9px;
   border-radius: 999px;

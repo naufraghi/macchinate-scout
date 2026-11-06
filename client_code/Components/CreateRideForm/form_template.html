@@ -9,6 +9,8 @@ properties:
   type: string
 - name: meeting_place
   type: string
+- name: note
+  type: string
 - name: seats
   type: string
 - name: trip_type
@@ -38,6 +40,8 @@ properties:
   <anvil-component type="TextBox" name="time_input" prop:placeholder="es. 09:30"></anvil-component>
   <anvil-component type="Label" name="meeting_place_label" prop:text="Indicazioni aggiuntive (facoltative)"></anvil-component>
   <anvil-component type="TextBox" name="meeting_place_input" prop:placeholder="es. ingresso lato nord"></anvil-component>
+  <anvil-component type="Label" name="note_label" prop:text="Note sull'offerta (facoltative)"></anvil-component>
+  <anvil-component type="TextArea" name="note_input" prop:placeholder="Informazioni utili per chi cerca un passaggio"></anvil-component>
   <anvil-component type="Label" name="seats_label" prop:text="Posti totali"></anvil-component>
   <anvil-component type="TextBox" name="seats_input" prop:placeholder="Numero di posti" prop:type="number"></anvil-component>
   <anvil-component type="Label" name="trip_type_label" prop:text="Tipo tratta"></anvil-component>

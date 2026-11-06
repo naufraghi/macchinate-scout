@@ -27,6 +27,9 @@ class RideCard(RideCardTemplate):
     self.meeting_place_label.text = (
       tratta["luogo_appuntamento"] or "Punto indicato sulla mappa"
     )
+    note_offerta = tratta["note"] or ""
+    self.offer_note_label.text = "Note: {}".format(note_offerta)
+    self.offer_note_label.visible = bool(note_offerta)
     posti_liberi = max(0, tratta["posti_totali"] - tratta["posti_occupati"])
     self.free_seats_label.text = str(posti_liberi)
 
@@ -96,6 +99,7 @@ class RideCard(RideCardTemplate):
         "ride_id": self.item.get_id(),
         "name": nome,
         "phone": telefono,
+        "note": (form.note or "").strip(),
       }
       result = RideAuth.request_email_access(email, action)
       if not result.get("ok"):
@@ -108,7 +112,9 @@ class RideCard(RideCardTemplate):
       )
       return
 
-    risultato = anvil.server.call("prenota_posto", self.item, nome, telefono)
+    risultato = anvil.server.call(
+      "prenota_posto", self.item, nome, telefono, (form.note or "").strip()
+    )
     if not risultato.get("ok"):
       alert(risultato.get("message", "Non è stato possibile prenotare il posto."))
       return

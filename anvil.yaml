@@ -21,6 +21,10 @@ db_schema:
       client_hidden: false
       name: telefono_wa
       type: string
+    - admin_ui: {order: 4, width: 240}
+      client_hidden: false
+      name: note
+      type: string
     server: full
     title: Prenotazioni
   tratte:
@@ -75,6 +79,10 @@ db_schema:
       client_hidden: false
       name: lng_partenza
       type: number
+    - admin_ui: {order: 12, width: 240}
+      client_hidden: false
+      name: note
+      type: string
     server: full
     title: Tratte
   tratte_contatti:

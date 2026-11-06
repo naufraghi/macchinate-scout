@@ -165,6 +165,7 @@ class Form1(Form1Template):
         action.get("ride_id"),
         nome_passeggero,
         action.get("phone"),
+        action.get("note", ""),
       )
       if not result.get("ok"):
         alert(result.get("message", "Non è stato possibile prenotare il posto."))
@@ -222,6 +223,7 @@ class Form1(Form1Template):
     data_tratta = form.date_iso
     orario = (form.time or "").strip()
     luogo_appuntamento = (form.meeting_place or "").strip()
+    note = (form.note or "").strip()
     tipo_tratta = form.trip_type
     telefono = (form.phone or "").strip()
     posti_input = form.seats
@@ -264,6 +266,7 @@ class Form1(Form1Template):
         "date": data_tratta,
         "time": orario,
         "meeting_place": luogo_appuntamento,
+        "note": note,
         "lat_partenza": lat_partenza,
         "lng_partenza": lng_partenza,
         "seats": posti,
@@ -287,6 +290,7 @@ class Form1(Form1Template):
       "date": data_tratta,
       "time": orario,
       "meeting_place": luogo_appuntamento,
+      "note": note,
       "lat_partenza": lat_partenza,
       "lng_partenza": lng_partenza,
       "seats": posti,
@@ -317,6 +321,7 @@ class Form1(Form1Template):
       action["trip_type"],
       nome_conducente,
       action["phone"],
+      action.get("note", ""),
     )
     if isinstance(risultato, dict) and not risultato.get("ok", True):
       alert(risultato.get("message", "Non è stato possibile pubblicare la tratta."))

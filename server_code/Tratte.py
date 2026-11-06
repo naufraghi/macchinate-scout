@@ -42,7 +42,7 @@ def inizia_accesso_email(email):
 @anvil.tables.in_transaction
 def _salva_tratta(
     data_tratta, orario, luogo_appuntamento, lat_partenza, lng_partenza, posti,
-    tipo_tratta, nome_conducente, conducente, telefono
+    tipo_tratta, nome_conducente, conducente, telefono, note
 ):
     tratta = app_tables.tratte.add_row(
         conducente=conducente,
@@ -52,6 +52,7 @@ def _salva_tratta(
         luogo_appuntamento=luogo_appuntamento,
         lat_partenza=lat_partenza,
         lng_partenza=lng_partenza,
+        note=note,
         posti_totali=posti,
         posti_occupati=0,
         tipo_tratta=tipo_tratta,
@@ -64,7 +65,7 @@ def _salva_tratta(
 @anvil.server.callable(require_user=True)
 def crea_tratta(
     data_tratta, orario, luogo_appuntamento, lat_partenza, lng_partenza, posti,
-    tipo_tratta, nome_conducente, telefono_wa
+    tipo_tratta, nome_conducente, telefono_wa, note=""
 ):
     conducente = anvil.users.get_user()
     telefono = _normalizza_telefono_wa(telefono_wa)
@@ -78,6 +79,7 @@ def crea_tratta(
     nome_conducente = (nome_conducente or "").strip()
     orario = (orario or "").strip()
     luogo_appuntamento = (luogo_appuntamento or "").strip()
+    note = str(note or "").strip()
     try:
         lat_partenza = float(lat_partenza)
         lng_partenza = float(lng_partenza)
@@ -112,6 +114,7 @@ def crea_tratta(
         nome_conducente,
         conducente,
         telefono,
+        note,
     )
 
 
@@ -182,7 +185,7 @@ def modifica_contatti_tratta(tratta_id, nome_conducente, telefono_wa):
 
 
 @anvil.tables.in_transaction
-def _crea_prenotazione(tratta_id, passeggero, nome_passeggero, telefono):
+def _crea_prenotazione(tratta_id, passeggero, nome_passeggero, telefono, note):
     tratta = app_tables.tratte.get_by_id(tratta_id)
     if tratta is None or tratta["stato"] != "Attiva":
         return None, "La tratta non è attiva o non esiste."
@@ -205,21 +208,22 @@ def _crea_prenotazione(tratta_id, passeggero, nome_passeggero, telefono):
         passeggero=passeggero,
         nome_passeggero=nome_passeggero,
         telefono_wa=telefono,
+        note=note,
     )
     return (prenotazione, tratta["conducente"]), None
 
 
 @anvil.server.callable(require_user=True)
-def prenota_posto(tratta_row, nome_passeggero, telefono):
-    return _prenota_posto(tratta_row.get_id(), nome_passeggero, telefono)
+def prenota_posto(tratta_row, nome_passeggero, telefono, note=""):
+    return _prenota_posto(tratta_row.get_id(), nome_passeggero, telefono, note)
 
 
 @anvil.server.callable(require_user=True)
-def prenota_posto_per_id(tratta_id, nome_passeggero, telefono):
-    return _prenota_posto(tratta_id, nome_passeggero, telefono)
+def prenota_posto_per_id(tratta_id, nome_passeggero, telefono, note=""):
+    return _prenota_posto(tratta_id, nome_passeggero, telefono, note)
 
 
-def _prenota_posto(tratta_id, nome_passeggero, telefono):
+def _prenota_posto(tratta_id, nome_passeggero, telefono, note=""):
     passeggero = anvil.users.get_user()
     if passeggero is None:
         return {"ok": False, "message": "Devi accedere per prenotare un posto."}
@@ -232,8 +236,10 @@ def _prenota_posto(tratta_id, nome_passeggero, telefono):
     if not telefono:
         return {"ok": False, "message": "Inserisci un numero WhatsApp valido."}
 
+    note = str(note or "").strip()
+
     risultato, messaggio_errore = _crea_prenotazione(
-        tratta_id, passeggero, nome_passeggero, telefono
+        tratta_id, passeggero, nome_passeggero, telefono, note
     )
     if risultato is None:
         return {"ok": False, "message": messaggio_errore}
@@ -253,6 +259,11 @@ def _prenota_posto(tratta_id, nome_passeggero, telefono):
     url_mappa = _url_mappa(tratta["lat_partenza"], tratta["lng_partenza"])
     riga_mappa = "Punto sulla mappa: {}\n".format(url_mappa) if url_mappa else ""
     tipo_tratta = tratta["tipo_tratta"]
+    riga_note = (
+        "Note: {}\n".format(prenotazione["note"])
+        if prenotazione["note"]
+        else ""
+    )
     email_passeggero = passeggero["email"]
     email_conducente = conducente["email"]
 
@@ -265,7 +276,7 @@ def _prenota_posto(tratta_id, nome_passeggero, telefono):
             "Nome: {}\n"
             "Data: {}\nOrario: {}\nLuogo dell'appuntamento: {}\n{}"
             "Tipo di tratta: {}\n"
-            "Numero WhatsApp: {}"
+            "Numero WhatsApp: {}\n{}"
         ).format(
             nome_passeggero,
             data_tratta_testo,
@@ -274,6 +285,7 @@ def _prenota_posto(tratta_id, nome_passeggero, telefono):
             riga_mappa,
             tipo_tratta,
             telefono,
+            riga_note,
         ),
     )
     anvil.email.send(
@@ -284,7 +296,7 @@ def _prenota_posto(tratta_id, nome_passeggero, telefono):
             "{} ha prenotato un posto nella tua tratta.\n"
             "Data: {}\nOrario: {}\nLuogo dell'appuntamento: {}\n{}"
             "Tipo di tratta: {}\n"
-            "Numero WhatsApp del passeggero: {}"
+            "Numero WhatsApp del passeggero: {}\n{}"
         ).format(
             nome_passeggero,
             data_tratta_testo,
@@ -293,6 +305,7 @@ def _prenota_posto(tratta_id, nome_passeggero, telefono):
             riga_mappa,
             tipo_tratta,
             telefono,
+            riga_note,
         ),
     )
 
@@ -308,6 +321,7 @@ def get_tratte_disponibili(tipo_tratta):
             "data_tratta",
             "orario",
             "luogo_appuntamento",
+            "note",
             "lat_partenza",
             "lng_partenza",
             "posti_totali",

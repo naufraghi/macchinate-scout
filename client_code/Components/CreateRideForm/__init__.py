@@ -14,6 +14,7 @@ class CreateRideForm(CreateRideFormTemplate):
     self._date_iso = ""
     self._time = ""
     self._meeting_place = ""
+    self._note = ""
     self._seats = ""
     self._trip_type = "andata"
     self._phone = ""
@@ -33,6 +34,7 @@ class CreateRideForm(CreateRideFormTemplate):
     self.date_input.date = self._parse_date(self._date_iso)
     self.time_input.text = self._time
     self.meeting_place_input.text = self._meeting_place
+    self.note_input.text = self._note
     self.seats_input.text = self._seats
     self.trip_type_input.selected_value = self._trip_type or "andata"
     self.phone_input.text = self._phone
@@ -121,6 +123,16 @@ class CreateRideForm(CreateRideFormTemplate):
     self._meeting_place = "" if value is None else str(value)
     if self._components_initialized:
       self.meeting_place_input.text = self._meeting_place
+
+  @property
+  def note(self):
+    return self.note_input.text or ""
+
+  @note.setter
+  def note(self, value):
+    self._note = "" if value is None else str(value)
+    if self._components_initialized:
+      self.note_input.text = self._note
 
   @property
   def seats(self):

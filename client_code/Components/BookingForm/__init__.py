@@ -5,6 +5,7 @@ class BookingForm(BookingFormTemplate):
   def __init__(self, **properties):
     self._name = ""
     self._phone = ""
+    self._note = ""
     self._email = ""
     self._email_prompt = ""
     self._components_initialized = False
@@ -15,6 +16,7 @@ class BookingForm(BookingFormTemplate):
   def _apply_values(self):
     self.name_input.text = self._name
     self.phone_input.text = self._phone
+    self.note_input.text = self._note
     self.email_input.text = self._email
     self.email_prompt_label.text = self._email_prompt
     self.email_prompt_label.visible = bool(self._email_prompt)
@@ -40,6 +42,16 @@ class BookingForm(BookingFormTemplate):
     self._phone = "" if value is None else str(value)
     if self._components_initialized:
       self.phone_input.text = self._phone
+
+  @property
+  def note(self):
+    return self.note_input.text or ""
+
+  @note.setter
+  def note(self, value):
+    self._note = "" if value is None else str(value)
+    if self._components_initialized:
+      self.note_input.text = self._note
 
   @property
   def email(self):
