@@ -1,0 +1,16 @@
+<anvil-form container="ColumnPanel">
+  <p>Ogni uscita ha una propria pagina: qui imposti gli orari standard, poi i conducenti possono offrire anche tratte extra.</p>
+  <anvil-component type="Label" name="name_label" prop:text="Nome evento"></anvil-component>
+  <anvil-component type="TextBox" name="name_input" prop:placeholder="es. Uscita in montagna"></anvil-component>
+  <anvil-component type="Label" name="description_label" prop:text="Descrizione"></anvil-component>
+  <anvil-component type="TextArea" name="description_input" prop:placeholder="Informazioni sull'uscita"></anvil-component>
+  <anvil-component type="Label" name="date_label" prop:text="Data dell'evento"></anvil-component>
+  <anvil-component type="DatePicker" name="date_input"></anvil-component>
+  <anvil-component type="Label" name="outbound_time_label" prop:text="Orario standard di andata"></anvil-component>
+  <anvil-component type="TextBox" name="outbound_time_input" prop:placeholder="es. 09:30"></anvil-component>
+  <anvil-component type="Label" name="return_time_label" prop:text="Orario standard di ritorno"></anvil-component>
+  <anvil-component type="TextBox" name="return_time_input" prop:placeholder="es. 17:00"></anvil-component>
+  <anvil-component type="Label" name="email_prompt_label" prop:visible="false"></anvil-component>
+  <anvil-component type="Label" name="email_label" prop:text="Email" prop:visible="false"></anvil-component>
+  <anvil-component type="TextBox" name="email_input" prop:placeholder="nome@esempio.it" prop:visible="false"></anvil-component>
+</anvil-form>

@@ -16,6 +16,7 @@ class RideCard(RideCardTemplate):
     self._booking_info = None
     self._driver_phone = ""
     conducente = tratta["conducente"]
+    self.extra_label.visible = bool(tratta["extra"])
     self.driver_label.text = (
       tratta["nome_conducente"]
       or (conducente["email"] if conducente is not None else "Conducente non specificato")

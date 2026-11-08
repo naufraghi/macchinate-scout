@@ -3,66 +3,20 @@
   <main class="rides-dashboard" anvil:name="content_panel" anvil:container:slot="default">
     <section class="rides-intro">
       <p class="rides-eyebrow">CLAN TORINO · PASSAGGI CONDIVISI</p>
-      <h1>Un passaggio per ogni attività</h1>
-      <p>Offri un posto in auto o trova un passaggio per raggiungere la prossima attività.</p>
+      <h1>Macchinate organizzate per evento</h1>
+      <p>Ogni attività ha la sua pagina, con orari standard di andata e ritorno e tutte le macchinate disponibili.</p>
     </section>
 
-    <section aria-labelledby="rides-role-title" class="rides-role-section">
-      <div class="rides-section-heading">
-        <div>
-          <p class="rides-eyebrow">PARTECIPA</p>
-          <h2 id="rides-role-title">Come vuoi partecipare?</h2>
-        </div>
-      </div>
-      <div class="rides-role-buttons">
-        <anvil-component type="Button" name="offer_button" prop:text="Offro Passaggio" prop:role="ride-role-button-selected"></anvil-component>
-        <anvil-component type="Button" name="seek_button" prop:text="Cerco Passaggio" prop:role="ride-role-button"></anvil-component>
-      </div>
-    </section>
-
-    <section aria-labelledby="rides-board-title" class="rides-board-section">
+    <section aria-labelledby="events-board-title" class="rides-board-section">
       <div class="rides-board-heading">
         <div>
-          <p class="rides-eyebrow">BACHECA</p>
-          <h2 id="rides-board-title">Trova un passaggio</h2>
+          <p class="rides-eyebrow">EVENTI</p>
+          <h2 id="events-board-title">Trova la tua attività</h2>
         </div>
-        <p class="rides-board-hint">Filtra le tratte disponibili per direzione.</p>
+        <anvil-component type="Button" name="create_event_button" prop:text="Crea un evento" prop:role="ride-book-button"></anvil-component>
       </div>
-
-      <div class="rides-filter-card">
-        <fieldset class="rides-direction-filter">
-          <legend>Direzione</legend>
-          <div class="rides-direction-options">
-            <anvil-component type="RadioButton" name="outbound_radio" prop:text="Andata" prop:group_name="ride-direction" prop:value="andata" prop:selected="true"></anvil-component>
-            <anvil-component type="RadioButton" name="return_radio" prop:text="Ritorno" prop:group_name="ride-direction" prop:value="ritorno"></anvil-component>
-          </div>
-        </fieldset>
-      </div>
-
-      <div class="rides-board-grid">
-        <article aria-labelledby="rides-map-title" class="rides-map-card">
-          <div class="rides-card-heading">
-            <div>
-              <p class="rides-eyebrow">TORINO E DINTORNI</p>
-              <h3 id="rides-map-title">Mappa dei passaggi</h3>
-            </div>
-            <span class="rides-map-caption">Ogni punto indica un luogo di partenza</span>
-          </div>
-          <anvil-component type="M3_App.Components.LeafletMap" name="torino_map" prop:role="torino-map"></anvil-component>
-        </article>
-
-        <article aria-labelledby="rides-list-title" class="rides-list-card">
-          <div class="rides-card-heading rides-list-heading">
-            <div>
-              <p class="rides-eyebrow">DISPONIBILITÀ</p>
-              <h3 id="rides-list-title">Auto disponibili</h3>
-            </div>
-            <span class="rides-list-count">Bacheca</span>
-          </div>
-          <anvil-component type="RepeatingPanel" name="rides_panel" prop:item_template="M3_App.RideCard" prop:role="ride-card-list"></anvil-component>
-          <anvil-component type="Label" name="empty_state" prop:text="Le auto disponibili appariranno qui. Quando una tratta viene pubblicata, troverai data, orario, luogo dell'appuntamento e posti liberi." prop:role="rides-empty-state"></anvil-component>
-        </article>
-      </div>
+      <anvil-component type="RepeatingPanel" name="events_panel" prop:item_template="M3_App.EventCard" prop:role="event-card-list"></anvil-component>
+      <anvil-component type="Label" name="empty_state" prop:text="Non ci sono ancora eventi. Creane uno per raccogliere le macchinate della prossima attività." prop:role="rides-empty-state"></anvil-component>
     </section>
   </main>
   <anvil-component type="FlowPanel" name="navbar_links" prop:role="ride-login-bar" container:slot="nav-right">

@@ -1,5 +1,3 @@
-from datetime import date
-
 from ._anvil_designer import CreateRideFormTemplate
 from anvil import *
 import anvil.js
@@ -11,7 +9,6 @@ class CreateRideForm(CreateRideFormTemplate):
 
   def __init__(self, **properties):
     self._driver_name = ""
-    self._date_iso = ""
     self._time = ""
     self._meeting_place = ""
     self._note = ""
@@ -20,6 +17,7 @@ class CreateRideForm(CreateRideFormTemplate):
     self._phone = ""
     self._email = ""
     self._email_prompt = ""
+    self._is_extra = False
     self._map_picker = None
     self._components_initialized = False
     super().__init__(**properties)
@@ -31,12 +29,13 @@ class CreateRideForm(CreateRideFormTemplate):
 
   def _apply_values(self):
     self.driver_name_input.text = self._driver_name
-    self.date_input.date = self._parse_date(self._date_iso)
     self.time_input.text = self._time
     self.meeting_place_input.text = self._meeting_place
     self.note_input.text = self._note
     self.seats_input.text = self._seats
     self.trip_type_input.selected_value = self._trip_type or "andata"
+    self.trip_type_label.visible = self._is_extra
+    self.trip_type_input.visible = self._is_extra
     self.phone_input.text = self._phone
     self.email_input.text = self._email
     self.email_prompt_label.text = self._email_prompt
@@ -67,12 +66,6 @@ class CreateRideForm(CreateRideFormTemplate):
     center = self._map_picker.getCenter()
     return float(center.lat), float(center.lng)
 
-  def _parse_date(self, value):
-    if not value:
-      return None
-    year, month, day = [int(part) for part in value.split("-")]
-    return date(year, month, day)
-
   def _set_seat_limits(self):
     seats_input_element = anvil.js.get_dom_node(self.seats_input)
     if seats_input_element.tagName != "INPUT":
@@ -92,17 +85,6 @@ class CreateRideForm(CreateRideFormTemplate):
     self._driver_name = "" if value is None else str(value)
     if self._components_initialized:
       self.driver_name_input.text = self._driver_name
-
-  @property
-  def date_iso(self):
-    selected_date = self.date_input.date
-    return selected_date.isoformat() if selected_date else ""
-
-  @date_iso.setter
-  def date_iso(self, value):
-    self._date_iso = "" if value is None else str(value)
-    if self._components_initialized:
-      self.date_input.date = self._parse_date(self._date_iso)
 
   @property
   def time(self):
@@ -186,3 +168,14 @@ class CreateRideForm(CreateRideFormTemplate):
       self.email_prompt_label.visible = bool(self._email_prompt)
       self.email_label.visible = bool(self._email_prompt)
       self.email_input.visible = bool(self._email_prompt)
+
+  @property
+  def is_extra(self):
+    return self._is_extra
+
+  @is_extra.setter
+  def is_extra(self, value):
+    self._is_extra = value is True or str(value).lower() == "true"
+    if self._components_initialized:
+      self.trip_type_label.visible = self._is_extra
+      self.trip_type_input.visible = self._is_extra

@@ -3,8 +3,6 @@ custom_component: true
 properties:
 - name: driver_name
   type: string
-- name: date_iso
-  type: string
 - name: time
   type: string
 - name: meeting_place
@@ -21,6 +19,8 @@ properties:
   type: string
 - name: email_prompt
   type: string
+- name: is_extra
+  type: string
 ---
 <anvil-form container="ColumnPanel">
   <anvil-component type="Label" name="email_prompt_label" prop:visible="false"></anvil-component>
@@ -34,8 +34,6 @@ properties:
     <anvil-component type="M3_App.Components.LeafletMap" name="departure_map" prop:role="ride-departure-picker"></anvil-component>
     <span aria-hidden="true" class="ride-map-center-pointer"></span>
   </div>
-  <anvil-component type="Label" name="date_label" prop:text="Data"></anvil-component>
-  <anvil-component type="DatePicker" name="date_input"></anvil-component>
   <anvil-component type="Label" name="time_label" prop:text="Orario"></anvil-component>
   <anvil-component type="TextBox" name="time_input" prop:placeholder="es. 09:30"></anvil-component>
   <anvil-component type="Label" name="meeting_place_label" prop:text="Indicazioni aggiuntive (facoltative)"></anvil-component>
@@ -44,8 +42,8 @@ properties:
   <anvil-component type="TextArea" name="note_input" prop:placeholder="Informazioni utili per chi cerca un passaggio"></anvil-component>
   <anvil-component type="Label" name="seats_label" prop:text="Posti totali"></anvil-component>
   <anvil-component type="TextBox" name="seats_input" prop:placeholder="Numero di posti" prop:type="number"></anvil-component>
-  <anvil-component type="Label" name="trip_type_label" prop:text="Tipo tratta"></anvil-component>
-  <anvil-component type="DropDown" name="trip_type_input"></anvil-component>
+  <anvil-component type="Label" name="trip_type_label" prop:text="Direzione della tratta extra" prop:visible="false"></anvil-component>
+  <anvil-component type="DropDown" name="trip_type_input" prop:visible="false"></anvil-component>
   <anvil-component type="Label" name="phone_label" prop:text="Telefono WhatsApp del conducente"></anvil-component>
   <anvil-component type="TextBox" name="phone_input" prop:placeholder="es. +39 333 1234567"></anvil-component>
 </anvil-form>

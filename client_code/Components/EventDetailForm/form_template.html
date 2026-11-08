@@ -1,0 +1,27 @@
+<anvil-form container="ColumnPanel">
+  <section class="event-detail-header">
+    <anvil-component type="Label" name="name_label" prop:role="event-detail-title"></anvil-component>
+    <anvil-component type="Label" name="date_label" prop:role="event-card-date"></anvil-component>
+    <anvil-component type="Label" name="description_label" prop:role="event-detail-description"></anvil-component>
+  </section>
+  <section class="event-default-trips">
+    <div class="event-default-trip">
+      <anvil-component type="Label" name="outbound_default_label" prop:role="event-card-time"></anvil-component>
+      <anvil-component type="Button" name="outbound_button" prop:text="Offri andata" prop:role="ride-role-button"></anvil-component>
+    </div>
+    <div class="event-default-trip">
+      <anvil-component type="Label" name="return_default_label" prop:role="event-card-time"></anvil-component>
+      <anvil-component type="Button" name="return_button" prop:text="Offri ritorno" prop:role="ride-role-button"></anvil-component>
+    </div>
+    <anvil-component type="Button" name="extra_button" prop:text="Aggiungi tratta extra" prop:role="ride-book-button"></anvil-component>
+  </section>
+  <section class="event-rides-section">
+    <h3>Macchinate disponibili</h3>
+    <anvil-component type="RepeatingPanel" name="rides_panel" prop:item_template="M3_App.RideCard" prop:role="ride-card-list"></anvil-component>
+    <anvil-component type="Label" name="empty_state" prop:text="In questo evento non ci sono ancora macchinate pubblicate."></anvil-component>
+  </section>
+  <section class="event-map-section">
+    <h3>Partenze sulla mappa</h3>
+    <anvil-component type="M3_App.Components.LeafletMap" name="event_map" prop:role="event-rides-map"></anvil-component>
+  </section>
+</anvil-form>

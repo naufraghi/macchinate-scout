@@ -1,5 +1,35 @@
 allow_embedding: false
 db_schema:
+  eventi:
+    client: none
+    columns:
+    - admin_ui: {order: 0, width: 240}
+      client_hidden: false
+      name: nome
+      type: string
+    - admin_ui: {order: 1, width: 320}
+      client_hidden: false
+      name: descrizione
+      type: string
+    - admin_ui: {order: 2, width: 200}
+      client_hidden: false
+      name: data_evento
+      type: date
+    - admin_ui: {order: 3, width: 160}
+      client_hidden: false
+      name: orario_andata
+      type: string
+    - admin_ui: {order: 4, width: 160}
+      client_hidden: false
+      name: orario_ritorno
+      type: string
+    - admin_ui: {order: 5, width: 200}
+      client_hidden: true
+      name: creato_da
+      target: users
+      type: link_single
+    server: full
+    title: Eventi
   prenotazioni:
     client: none
     columns:
@@ -35,51 +65,60 @@ db_schema:
       name: conducente
       target: users
       type: link_single
-    - admin_ui: {order: 1, width: 200}
+    - admin_ui: {order: 1, width: 240}
+      client_hidden: false
+      name: evento
+      target: eventi
+      type: link_single
+    - admin_ui: {order: 2, width: 120}
+      client_hidden: false
+      name: extra
+      type: bool
+    - admin_ui: {order: 3, width: 200}
       client_hidden: false
       name: nome_conducente
       type: string
-    - admin_ui: {order: 2, width: 200}
+    - admin_ui: {order: 4, width: 200}
       client_hidden: false
       name: tipo_tratta
       type: string
-    - admin_ui: {order: 3, width: 200}
+    - admin_ui: {order: 5, width: 200}
       client_hidden: false
       name: zona_partenza
       type: string
-    - admin_ui: {order: 4, width: 200}
+    - admin_ui: {order: 6, width: 200}
       client_hidden: false
       name: orario
       type: string
-    - admin_ui: {order: 5, width: 200}
+    - admin_ui: {order: 7, width: 200}
       client_hidden: false
       name: data_tratta
       type: date
-    - admin_ui: {order: 6, width: 240}
+    - admin_ui: {order: 8, width: 240}
       client_hidden: false
       name: luogo_appuntamento
       type: string
-    - admin_ui: {order: 7, width: 200}
+    - admin_ui: {order: 9, width: 200}
       client_hidden: false
       name: posti_totali
       type: number
-    - admin_ui: {order: 8, width: 200}
+    - admin_ui: {order: 10, width: 200}
       client_hidden: false
       name: posti_occupati
       type: number
-    - admin_ui: {order: 9, width: 200}
+    - admin_ui: {order: 11, width: 200}
       client_hidden: false
       name: stato
       type: string
-    - admin_ui: {order: 10, width: 200}
+    - admin_ui: {order: 12, width: 200}
       client_hidden: false
       name: lat_partenza
       type: number
-    - admin_ui: {order: 11, width: 200}
+    - admin_ui: {order: 13, width: 200}
       client_hidden: false
       name: lng_partenza
       type: number
-    - admin_ui: {order: 12, width: 240}
+    - admin_ui: {order: 14, width: 240}
       client_hidden: false
       name: note
       type: string
@@ -169,4 +208,7 @@ services:
 - client_config: {}
   server_config: {custom_smtp: true, smtp_encryption: starttls, smtp_host: mail.infomaniak.com, smtp_password: 2+m9jxfldGX/dDiUw8cAn4Sr6u9DNhIE2Df+HBwlaIWLPTmLI9HH/dJNfRjI7lZxuiJBl1hOkwGSWa3TZ+DrVRXmX3KCMDIj70D/xV0Do0R/NTXQMbSv5UPP4+pHL6njdtUtO0Dd9rZckyc2UlLv3rnjeHJ6I+SXQtlgbnmyFX1yNlI87nhZoWs=, smtp_port: 587, smtp_user: matteo@slug.it}
   source: /runtime/services/anvil/email.yml
+- client_config: {}
+  server_config: {}
+  source: /runtime/services/anvil/secrets.yml
 startup_form: Form1

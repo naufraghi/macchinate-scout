@@ -1,3 +1,4 @@
+import anvil.secrets
 import anvil.email
 import anvil.server
 import anvil.tables
@@ -40,14 +41,116 @@ def inizia_accesso_email(email):
 
 
 @anvil.tables.in_transaction
+def _migra_tratte_senza_evento():
+    gruppi = {}
+    for tratta in app_tables.tratte.search(evento=None):
+        data_evento = tratta["data_tratta"]
+        gruppi.setdefault(data_evento, []).append(tratta)
+
+    for data_evento, tratte in gruppi.items():
+        if data_evento is None:
+            nome_evento = "Tratte precedenti"
+            descrizione = "Tratte pubblicate prima dell'introduzione degli eventi."
+        else:
+            nome_evento = "Uscita del {}".format(data_evento.strftime("%d/%m/%Y"))
+            descrizione = "Evento creato automaticamente per raccogliere le tratte già pubblicate."
+        orario_andata = next(
+            (tratta["orario"] for tratta in tratte if tratta["tipo_tratta"] == "andata"),
+            "",
+        )
+        orario_ritorno = next(
+            (tratta["orario"] for tratta in tratte if tratta["tipo_tratta"] == "ritorno"),
+            "",
+        )
+        evento = app_tables.eventi.add_row(
+            nome=nome_evento,
+            descrizione=descrizione,
+            data_evento=data_evento,
+            orario_andata=orario_andata,
+            orario_ritorno=orario_ritorno,
+        )
+        for tratta in tratte:
+            tratta["evento"] = evento
+            tratta["extra"] = False
+
+
+@anvil.server.callable
+def get_eventi():
+    _migra_tratte_senza_evento()
+    return app_tables.eventi.search(
+        q.fetch_only(
+            "nome",
+            "descrizione",
+            "data_evento",
+            "orario_andata",
+            "orario_ritorno",
+        )
+    )
+
+
+@anvil.server.callable
+def get_tratte_evento(evento_id):
+    evento = app_tables.eventi.get_by_id(evento_id)
+    if evento is None:
+        return []
+    return app_tables.tratte.search(
+        q.fetch_only(
+            "tipo_tratta",
+            "extra",
+            "data_tratta",
+            "orario",
+            "luogo_appuntamento",
+            "note",
+            "lat_partenza",
+            "lng_partenza",
+            "posti_totali",
+            "posti_occupati",
+            "stato",
+            "nome_conducente",
+            conducente=q.fetch_only("email"),
+        ),
+        evento=evento,
+        stato="Attiva",
+    )
+
+
+@anvil.server.callable(require_user=True)
+def crea_evento(nome, descrizione, data_evento, orario_andata, orario_ritorno):
+    creato_da = anvil.users.get_user()
+    nome = (nome or "").strip()
+    descrizione = (descrizione or "").strip()
+    orario_andata = (orario_andata or "").strip()
+    orario_ritorno = (orario_ritorno or "").strip()
+    if isinstance(data_evento, str):
+        try:
+            data_evento = date.fromisoformat(data_evento)
+        except ValueError:
+            return {"ok": False, "message": "La data dell'evento non è valida."}
+    if not nome or not descrizione:
+        return {"ok": False, "message": "Inserisci il nome e la descrizione dell'evento."}
+    if not isinstance(data_evento, date) or not orario_andata or not orario_ritorno:
+        return {"ok": False, "message": "Inserisci data e orari standard di andata e ritorno."}
+    return app_tables.eventi.add_row(
+        nome=nome,
+        descrizione=descrizione,
+        data_evento=data_evento,
+        orario_andata=orario_andata,
+        orario_ritorno=orario_ritorno,
+        creato_da=creato_da,
+    )
+
+
+@anvil.tables.in_transaction
 def _salva_tratta(
-    data_tratta, orario, luogo_appuntamento, lat_partenza, lng_partenza, posti,
-    tipo_tratta, nome_conducente, conducente, telefono, note
+    evento, orario, luogo_appuntamento, lat_partenza, lng_partenza, posti,
+    tipo_tratta, extra, nome_conducente, conducente, telefono, note
 ):
     tratta = app_tables.tratte.add_row(
+        evento=evento,
         conducente=conducente,
+        extra=extra,
         nome_conducente=nome_conducente,
-        data_tratta=data_tratta,
+        data_tratta=evento["data_evento"],
         orario=orario,
         luogo_appuntamento=luogo_appuntamento,
         lat_partenza=lat_partenza,
@@ -64,18 +167,16 @@ def _salva_tratta(
 
 @anvil.server.callable(require_user=True)
 def crea_tratta(
-    data_tratta, orario, luogo_appuntamento, lat_partenza, lng_partenza, posti,
-    tipo_tratta, nome_conducente, telefono_wa, note=""
+    evento_id, orario, luogo_appuntamento, lat_partenza, lng_partenza, posti,
+    tipo_tratta, extra, nome_conducente, telefono_wa, note=""
 ):
     conducente = anvil.users.get_user()
+    evento = app_tables.eventi.get_by_id(evento_id)
+    if evento is None:
+        return {"ok": False, "message": "L'evento non esiste più."}
     telefono = _normalizza_telefono_wa(telefono_wa)
     if not telefono:
         return {"ok": False, "message": "Inserisci un numero WhatsApp valido."}
-    if isinstance(data_tratta, str):
-        try:
-            data_tratta = date.fromisoformat(data_tratta)
-        except ValueError:
-            return {"ok": False, "message": "La data della tratta non è valida."}
     nome_conducente = (nome_conducente or "").strip()
     orario = (orario or "").strip()
     luogo_appuntamento = (luogo_appuntamento or "").strip()
@@ -88,11 +189,17 @@ def crea_tratta(
 
     if (
         not nome_conducente
-        or not isinstance(data_tratta, date)
         or not orario
         or tipo_tratta not in ("andata", "ritorno")
     ):
         return {"ok": False, "message": "I dati della tratta non sono validi."}
+    if not isinstance(extra, bool):
+        return {"ok": False, "message": "Il tipo di tratta non è valido."}
+    orario_standard = evento["orario_" + tipo_tratta]
+    if extra and orario == orario_standard:
+        return {"ok": False, "message": "Una tratta extra deve avere un orario diverso da quello standard dell'evento."}
+    if not extra and orario != orario_standard:
+        return {"ok": False, "message": "Usa l'orario standard dell'evento oppure seleziona una tratta extra."}
     if not (-90 <= lat_partenza <= 90) or not (-180 <= lng_partenza <= 180):
         return {"ok": False, "message": "Le coordinate del punto non sono valide."}
 
@@ -104,13 +211,14 @@ def crea_tratta(
         return {"ok": False, "message": "La tratta deve avere almeno un posto."}
 
     return _salva_tratta(
-        data_tratta,
+        evento,
         orario,
         luogo_appuntamento,
         lat_partenza,
         lng_partenza,
         posti,
         tipo_tratta,
+        bool(extra),
         nome_conducente,
         conducente,
         telefono,
@@ -246,6 +354,8 @@ def _prenota_posto(tratta_id, nome_passeggero, telefono, note=""):
 
     prenotazione, conducente = risultato
     tratta = prenotazione["tratta"]
+    evento = tratta["evento"]
+    nome_evento = evento["nome"] if evento is not None else "Evento non indicato"
     data_tratta = tratta["data_tratta"]
     data_tratta_testo = (
         data_tratta.strftime("%d/%m/%Y")
@@ -270,14 +380,16 @@ def _prenota_posto(tratta_id, nome_passeggero, telefono, note=""):
     anvil.email.send(
         to=email_passeggero,
         from_address=_EMAIL_FROM_ADDRESS,
-        subject="Conferma prenotazione posto",
+        subject="Conferma prenotazione posto — {}".format(nome_evento),
         text=(
             "La tua prenotazione è confermata.\n"
+            "Evento: {}\n"
             "Nome: {}\n"
             "Data: {}\nOrario: {}\nLuogo dell'appuntamento: {}\n{}"
             "Tipo di tratta: {}\n"
             "Numero WhatsApp: {}\n{}"
         ).format(
+            nome_evento,
             nome_passeggero,
             data_tratta_testo,
             orario,
@@ -291,14 +403,16 @@ def _prenota_posto(tratta_id, nome_passeggero, telefono, note=""):
     anvil.email.send(
         to=email_conducente,
         from_address=_EMAIL_FROM_ADDRESS,
-        subject="Nuova prenotazione per la tua tratta",
+        subject="Nuova prenotazione per {}".format(nome_evento),
         text=(
             "{} ha prenotato un posto nella tua tratta.\n"
+            "Evento: {}\n"
             "Data: {}\nOrario: {}\nLuogo dell'appuntamento: {}\n{}"
             "Tipo di tratta: {}\n"
             "Numero WhatsApp del passeggero: {}\n{}"
         ).format(
             nome_passeggero,
+            nome_evento,
             data_tratta_testo,
             orario,
             luogo_appuntamento,

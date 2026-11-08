@@ -385,6 +385,85 @@ color: %color:On Primary Container%;
   width: 100%;
 }
 
+.anvil-role-event-rides-map {
+  display: block;
+  width: 100%;
+}
+
+.anvil-role-event-card-list > div {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.event-card {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid %color:Surface Variant%;
+  border-radius: 18px;
+  background: %color:Surface%;
+  box-shadow: 0 8px 26px rgba(40, 32, 58, 0.045);
+}
+
+.event-card-heading,
+.event-card-schedule {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.anvil-role-event-card-title,
+.anvil-role-event-detail-title {
+  color: %color:On Surface%;
+  font-size: 20px;
+  font-weight: 750;
+}
+
+.anvil-role-event-card-date,
+.anvil-role-event-card-time {
+  color: %color:On Surface Variant%;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.anvil-role-event-card-description,
+.anvil-role-event-detail-description {
+  color: %color:On Surface Variant%;
+  font-size: 14px;
+  white-space: pre-wrap;
+}
+
+.event-default-trips {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 14px 0;
+}
+
+.event-default-trip {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid %color:Surface Variant%;
+  border-radius: 14px;
+  background: %color:Background%;
+}
+
+.event-rides-section,
+.event-map-section {
+  margin-top: 20px;
+}
+
+.event-rides-section h3,
+.event-map-section h3 {
+  margin: 0 0 12px;
+  color: %color:On Surface%;
+  font-size: 17px;
+  font-weight: 700;
+}
+
 .rides-leaflet-map {
   position: relative;
   z-index: 0;
@@ -542,6 +621,17 @@ color: %color:On Primary Container%;
   white-space: nowrap;
 }
 
+.anvil-role-ride-card-extra {
+  display: inline-block;
+  margin-top: 7px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  color: %color:On Secondary Container%;
+  background: %color:Secondary Container%;
+  font-size: 11px;
+  font-weight: 700;
+}
+
 .ride-card-details {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -676,6 +766,16 @@ color: %color:On Primary Container%;
 
   .rides-map-caption {
     display: none;
+  }
+
+  .event-default-trips {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .event-card-heading,
+  .event-card-schedule {
+    align-items: start;
+    flex-direction: column;
   }
 
   .ride-card-details {
