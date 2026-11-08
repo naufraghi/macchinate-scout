@@ -209,15 +209,19 @@ class Form1(Form1Template):
       email_prompt=email_prompt,
     )
 
-    conferma = alert(
-      form,
-      title="Pubblica una tratta",
-      buttons=[("Pubblica", True), ("Annulla", False)],
-      large=True,
-    )
-    if conferma is not True:
-      return
+    while True:
+      conferma = alert(
+        form,
+        title="Pubblica una tratta",
+        buttons=[("Pubblica", True), ("Annulla", False)],
+        large=True,
+      )
+      if conferma is not True:
+        return
+      if self._submit_create_ride_form(form, user):
+        return
 
+  def _submit_create_ride_form(self, form, user):
     coordinate_partenza = form.get_departure_coordinates()
     nome_conducente = (form.driver_name or "").strip()
     data_tratta = form.date_iso
@@ -231,10 +235,10 @@ class Form1(Form1Template):
       posti = int(posti_input)
     except (TypeError, ValueError):
       alert("Inserisci un numero intero di posti.", title="Dati non validi")
-      return
+      return False
     if not 1 <= posti <= 8:
       alert("Il numero di posti deve essere compreso tra 1 e 8.", title="Dati non validi")
-      return
+      return False
 
     if (
       not data_tratta
@@ -246,21 +250,21 @@ class Form1(Form1Template):
         "Compila tutti i campi e indica almeno un posto.",
         title="Dati non validi",
       )
-      return
+      return False
 
     if coordinate_partenza is None:
       alert(
         "Attendi il caricamento della mappa e seleziona il punto d'incontro.",
         title="Punto richiesto",
       )
-      return
+      return False
 
     lat_partenza, lng_partenza = coordinate_partenza
     if user is None:
       email = (form.email or "").strip().lower()
       if "@" not in email:
         alert("Inserisci un indirizzo email valido.", title="Email richiesta")
-        return
+        return False
       action = {
         "kind": "offer",
         "date": data_tratta,
@@ -277,13 +281,13 @@ class Form1(Form1Template):
       result = RideAuth.request_email_access(email, action)
       if not result.get("ok"):
         alert(result.get("message", "Non è stato possibile inviare l'email."))
-        return
+        return False
       alert(
         "Controlla la posta: troverai il link per accedere o confermare "
         "l'account. Al rientro completeremo la pubblicazione.",
         title="Controlla la posta",
       )
-      return
+      return True
 
     action = {
       "kind": "offer",
@@ -298,7 +302,7 @@ class Form1(Form1Template):
       "driver_name": nome_conducente,
       "phone": telefono,
     }
-    self._publish_ride(action, user)
+    return self._publish_ride(action, user)
 
   def _publish_ride(self, action, user, pending=False):
     nome_conducente = action.get("driver_name", "").strip()
