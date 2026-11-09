@@ -77,8 +77,9 @@ def _migra_tratte_senza_evento():
 @anvil.server.callable
 def get_eventi():
     _migra_tratte_senza_evento()
-    return app_tables.eventi.search(
-        q.fetch_only(
+    eventi = list(
+        app_tables.eventi.search(
+            q.fetch_only(
             "nome",
             "descrizione",
             "luogo_evento",
@@ -87,8 +88,17 @@ def get_eventi():
             "data_evento",
             "orario_andata",
             "orario_ritorno",
+            )
         )
     )
+    utente = anvil.users.get_user()
+    modificabili = []
+    if utente is not None:
+        modificabili = [
+            evento.get_id()
+            for evento in app_tables.eventi.search(creato_da=utente)
+        ]
+    return {"eventi": eventi, "modificabili": modificabili}
 
 
 @anvil.server.callable
@@ -157,6 +167,60 @@ def crea_evento(
         orario_ritorno=orario_ritorno,
         creato_da=creato_da,
     )
+
+
+@anvil.server.callable(require_user=True)
+@anvil.tables.in_transaction
+def modifica_evento(
+    evento_id, nome, descrizione, data_evento, orario_andata, orario_ritorno,
+    luogo_evento, lat_evento, lng_evento
+):
+    evento = app_tables.eventi.get_by_id(evento_id)
+    if evento is None:
+        return {"ok": False, "message": "L'evento non esiste più."}
+
+    utente = anvil.users.get_user()
+    creatore = evento["creato_da"]
+    if utente is None or creatore is None or creatore.get_id() != utente.get_id():
+        return {"ok": False, "message": "Può modificare l'evento solo chi lo ha creato."}
+
+    nome = (nome or "").strip()
+    descrizione = (descrizione or "").strip()
+    orario_andata = (orario_andata or "").strip()
+    orario_ritorno = (orario_ritorno or "").strip()
+    luogo_evento = (luogo_evento or "").strip()
+    if isinstance(data_evento, str):
+        try:
+            data_evento = date.fromisoformat(data_evento)
+        except ValueError:
+            return {"ok": False, "message": "La data dell'evento non è valida."}
+    if not nome or not descrizione:
+        return {"ok": False, "message": "Inserisci il nome e la descrizione dell'evento."}
+    if not isinstance(data_evento, date) or not orario_andata or not orario_ritorno:
+        return {"ok": False, "message": "Inserisci data e orari standard di andata e ritorno."}
+    if not luogo_evento:
+        return {"ok": False, "message": "Inserisci il luogo dell'evento."}
+    try:
+        lat_evento = float(lat_evento)
+        lng_evento = float(lng_evento)
+    except (TypeError, ValueError):
+        return {"ok": False, "message": "Seleziona una posizione valida sulla mappa."}
+    if not (-90 <= lat_evento <= 90) or not (-180 <= lng_evento <= 180):
+        return {"ok": False, "message": "Le coordinate del luogo dell'evento non sono valide."}
+
+    evento.update(
+        nome=nome,
+        descrizione=descrizione,
+        luogo_evento=luogo_evento,
+        lat_evento=lat_evento,
+        lng_evento=lng_evento,
+        data_evento=data_evento,
+        orario_andata=orario_andata,
+        orario_ritorno=orario_ritorno,
+    )
+    for tratta in app_tables.tratte.search(evento=evento):
+        tratta["data_tratta"] = data_evento
+    return evento
 
 
 @anvil.tables.in_transaction

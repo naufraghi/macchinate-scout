@@ -22,8 +22,13 @@ class Form1(Form1Template):
     self._resume_pending_action()
 
   def _refresh_events(self):
-    eventi = list(anvil.server.call("get_eventi"))
-    self.events_panel.items = eventi
+    risultati = anvil.server.call("get_eventi")
+    eventi = risultati["eventi"]
+    modificabili = set(risultati["modificabili"])
+    self.events_panel.items = [
+      {"evento": evento, "can_edit": evento.get_id() in modificabili}
+      for evento in eventi
+    ]
     self.empty_state.visible = not eventi
 
   def _refresh_login_controls(self):
@@ -150,39 +155,7 @@ class Form1(Form1Template):
         return
 
   def _read_event_form(self, form):
-    nome = (form.name_input.text or "").strip()
-    descrizione = (form.description_input.text or "").strip()
-    selected_date = form.date_input.date
-    orario_andata = (form.outbound_time_input.text or "").strip()
-    orario_ritorno = (form.return_time_input.text or "").strip()
-    if not nome or not descrizione or selected_date is None:
-      alert("Inserisci nome, descrizione e data dell'evento.", title="Dati mancanti")
-      return None
-    if not orario_andata or not orario_ritorno:
-      alert("Inserisci gli orari standard di andata e ritorno.", title="Dati mancanti")
-      return None
-    luogo_evento = (form.event_location_input.text or "").strip()
-    if not luogo_evento:
-      alert("Inserisci il luogo dell'evento.", title="Luogo richiesto")
-      return None
-    coordinate_evento = form.get_location_coordinates()
-    if coordinate_evento is None:
-      alert(
-        "Attendi il caricamento della mappa e scegli la posizione dell'evento.",
-        title="Posizione richiesta",
-      )
-      return None
-    lat_evento, lng_evento = coordinate_evento
-    return {
-      "name": nome,
-      "description": descrizione,
-      "date": selected_date.isoformat(),
-      "outbound_time": orario_andata,
-      "return_time": orario_ritorno,
-      "event_location": luogo_evento,
-      "event_lat": lat_evento,
-      "event_lng": lng_evento,
-    }
+    return form.get_event_values()
 
   def _publish_event(self, action, pending=False):
     evento = anvil.server.call(

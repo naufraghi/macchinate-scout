@@ -1,12 +1,15 @@
 <article class="event-card">
   <div class="event-card-heading">
-    <anvil-component type="Label" name="name_label" bind:text="self.item['nome']" prop:role="event-card-title"></anvil-component>
+  <anvil-component type="Label" name="name_label" prop:role="event-card-title"></anvil-component>
     <anvil-component type="Label" name="date_label" prop:role="event-card-date"></anvil-component>
   </div>
-  <anvil-component type="Label" name="description_label" bind:text="self.item['descrizione']" prop:role="event-card-description"></anvil-component>
+  <anvil-component type="Label" name="description_label" prop:role="event-card-description"></anvil-component>
   <div class="event-card-schedule">
     <anvil-component type="Label" name="outbound_label" prop:role="event-card-time"></anvil-component>
     <anvil-component type="Label" name="return_label" prop:role="event-card-time"></anvil-component>
   </div>
-  <anvil-component type="Button" name="open_button" prop:text="Apri evento" prop:role="ride-book-button"></anvil-component>
+  <div class="event-card-actions">
+    <anvil-component type="Button" name="open_button" prop:text="Apri evento" prop:role="ride-book-button"></anvil-component>
+    <anvil-component type="Button" name="edit_event_button" prop:text="Modifica evento" prop:role="outlined-button" prop:visible="false"></anvil-component>
+  </div>
 </article>
