@@ -21,7 +21,9 @@
     <anvil-component type="Label" name="empty_state" prop:text="In questo evento non ci sono ancora macchinate pubblicate."></anvil-component>
   </section>
   <section class="event-map-section">
-    <h3>Partenze sulla mappa</h3>
+    <h3>Luogo dell'evento e partenze sulla mappa</h3>
+    <anvil-component type="Label" name="event_location_label" prop:role="event-card-time" prop:visible="false"></anvil-component>
+    <p class="event-map-legend">Il pin blu indica il luogo dell'evento; i cerchi verdi indicano i punti di partenza.</p>
     <anvil-component type="M3_App.Components.LeafletMap" name="event_map" prop:role="event-rides-map"></anvil-component>
   </section>
 </anvil-form>

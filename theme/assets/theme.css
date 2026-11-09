@@ -479,7 +479,8 @@ color: %color:On Primary Container%;
   font-size: 13px;
 }
 
-.ride-location-picker {
+.ride-location-picker,
+.event-location-picker {
   position: relative;
   margin-bottom: 10px;
 }
@@ -489,8 +490,15 @@ color: %color:On Primary Container%;
   width: 100%;
 }
 
-.ride-location-picker .rides-leaflet-map {
+.ride-location-picker .rides-leaflet-map,
+.event-location-picker .rides-leaflet-map {
   height: 250px;
+}
+
+.event-map-legend {
+  margin: 0 0 10px;
+  color: %color:On Surface Variant%;
+  font-size: 13px;
 }
 
 .ride-map-center-pointer {

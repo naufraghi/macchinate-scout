@@ -81,6 +81,9 @@ def get_eventi():
         q.fetch_only(
             "nome",
             "descrizione",
+            "luogo_evento",
+            "lat_evento",
+            "lng_evento",
             "data_evento",
             "orario_andata",
             "orario_ritorno",
@@ -115,12 +118,16 @@ def get_tratte_evento(evento_id):
 
 
 @anvil.server.callable(require_user=True)
-def crea_evento(nome, descrizione, data_evento, orario_andata, orario_ritorno):
+def crea_evento(
+    nome, descrizione, data_evento, orario_andata, orario_ritorno,
+    luogo_evento, lat_evento, lng_evento
+):
     creato_da = anvil.users.get_user()
     nome = (nome or "").strip()
     descrizione = (descrizione or "").strip()
     orario_andata = (orario_andata or "").strip()
     orario_ritorno = (orario_ritorno or "").strip()
+    luogo_evento = (luogo_evento or "").strip()
     if isinstance(data_evento, str):
         try:
             data_evento = date.fromisoformat(data_evento)
@@ -130,9 +137,21 @@ def crea_evento(nome, descrizione, data_evento, orario_andata, orario_ritorno):
         return {"ok": False, "message": "Inserisci il nome e la descrizione dell'evento."}
     if not isinstance(data_evento, date) or not orario_andata or not orario_ritorno:
         return {"ok": False, "message": "Inserisci data e orari standard di andata e ritorno."}
+    if not luogo_evento:
+        return {"ok": False, "message": "Inserisci il luogo dell'evento."}
+    try:
+        lat_evento = float(lat_evento)
+        lng_evento = float(lng_evento)
+    except (TypeError, ValueError):
+        return {"ok": False, "message": "Seleziona una posizione valida sulla mappa."}
+    if not (-90 <= lat_evento <= 90) or not (-180 <= lng_evento <= 180):
+        return {"ok": False, "message": "Le coordinate del luogo dell'evento non sono valide."}
     return app_tables.eventi.add_row(
         nome=nome,
         descrizione=descrizione,
+        luogo_evento=luogo_evento,
+        lat_evento=lat_evento,
+        lng_evento=lng_evento,
         data_evento=data_evento,
         orario_andata=orario_andata,
         orario_ritorno=orario_ritorno,

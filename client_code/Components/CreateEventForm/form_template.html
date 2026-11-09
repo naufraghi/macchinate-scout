@@ -6,6 +6,13 @@
   <anvil-component type="TextArea" name="description_input" prop:placeholder="Informazioni sull'uscita"></anvil-component>
   <anvil-component type="Label" name="date_label" prop:text="Data dell'evento"></anvil-component>
   <anvil-component type="DatePicker" name="date_input"></anvil-component>
+  <anvil-component type="Label" name="event_location_label" prop:text="Luogo dell'evento"></anvil-component>
+  <anvil-component type="TextBox" name="event_location_input" prop:placeholder="es. nome del luogo o indirizzo"></anvil-component>
+  <p class="ride-map-picker-hint">Sposta la mappa finché il luogo dell'evento si trova sotto il puntatore al centro.</p>
+  <div class="event-location-picker">
+    <anvil-component type="M3_App.Components.LeafletMap" name="event_location_map" prop:role="event-location-picker-map"></anvil-component>
+    <span aria-hidden="true" class="ride-map-center-pointer"></span>
+  </div>
   <anvil-component type="Label" name="outbound_time_label" prop:text="Orario standard di andata"></anvil-component>
   <anvil-component type="TextBox" name="outbound_time_input" prop:placeholder="es. 09:30"></anvil-component>
   <anvil-component type="Label" name="return_time_label" prop:text="Orario standard di ritorno"></anvil-component>

@@ -11,19 +11,31 @@ db_schema:
       client_hidden: false
       name: descrizione
       type: string
-    - admin_ui: {order: 2, width: 200}
+    - admin_ui: {order: 2, width: 240}
+      client_hidden: false
+      name: luogo_evento
+      type: string
+    - admin_ui: {order: 3, width: 160}
+      client_hidden: false
+      name: lat_evento
+      type: number
+    - admin_ui: {order: 4, width: 160}
+      client_hidden: false
+      name: lng_evento
+      type: number
+    - admin_ui: {order: 5, width: 200}
       client_hidden: false
       name: data_evento
       type: date
-    - admin_ui: {order: 3, width: 160}
+    - admin_ui: {order: 6, width: 160}
       client_hidden: false
       name: orario_andata
       type: string
-    - admin_ui: {order: 4, width: 160}
+    - admin_ui: {order: 7, width: 160}
       client_hidden: false
       name: orario_ritorno
       type: string
-    - admin_ui: {order: 5, width: 200}
+    - admin_ui: {order: 8, width: 200}
       client_hidden: true
       name: creato_da
       target: users

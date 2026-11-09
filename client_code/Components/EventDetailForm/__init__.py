@@ -36,6 +36,9 @@ class EventDetailForm(EventDetailFormTemplate):
     self.return_default_label.text = "Ritorno standard: {}".format(
       event["orario_ritorno"] or "non indicato"
     )
+    luogo_evento = event["luogo_evento"] or ""
+    self.event_location_label.text = "Luogo dell'evento: {}".format(luogo_evento)
+    self.event_location_label.visible = bool(luogo_evento)
 
   def form_show(self, **event_args):
     self._ensure_map()
@@ -67,19 +70,32 @@ class EventDetailForm(EventDetailFormTemplate):
     self._refresh_map_markers(tratte)
 
   def _refresh_map_markers(self, tratte):
-    if self._map is None:
+    evento = self._event
+    if self._map is None or evento is None:
       return
     for marker in self._map_markers:
       marker.remove()
     self._map_markers = []
-    coordinate_partenze = []
+    coordinate_mappa = []
+    lat_evento = evento["lat_evento"]
+    lng_evento = evento["lng_evento"]
+    if lat_evento is not None and lng_evento is not None:
+      coordinate_evento = [lat_evento, lng_evento]
+      coordinate_mappa.append(coordinate_evento)
+      marker_evento = L.marker(coordinate_evento)
+      marker_evento.addTo(self._map)
+      marker_evento.bindTooltip(
+        "Evento: {}".format(evento["luogo_evento"] or evento["nome"]),
+        {"direction": "top", "className": "ride-map-marker-label"},
+      )
+      self._map_markers.append(marker_evento)
     for tratta in tratte:
       lat = tratta["lat_partenza"]
       lng = tratta["lng_partenza"]
       if lat is None or lng is None:
         continue
       coordinate = [lat, lng]
-      coordinate_partenze.append(coordinate)
+      coordinate_mappa.append(coordinate)
       marker = L.circleMarker(
         coordinate,
         {
@@ -96,12 +112,12 @@ class EventDetailForm(EventDetailFormTemplate):
         {"direction": "top", "className": "ride-map-marker-label"},
       )
       self._map_markers.append(marker)
-    if not self._map_view_initialized and coordinate_partenze:
-      if len(coordinate_partenze) == 1:
-        self._map.setView(coordinate_partenze[0], 13)
+    if not self._map_view_initialized and coordinate_mappa:
+      if len(coordinate_mappa) == 1:
+        self._map.setView(coordinate_mappa[0], 13)
       else:
         self._map.fitBounds(
-          coordinate_partenze,
+          coordinate_mappa,
           {"padding": [24, 24], "maxZoom": 13},
         )
       self._map_view_initialized = True

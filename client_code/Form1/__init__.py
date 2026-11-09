@@ -45,6 +45,17 @@ class Form1(Form1Template):
       return
     kind = action.get("kind")
     if kind == "create_event":
+      if (
+        not action.get("event_location")
+        or action.get("event_lat") is None
+        or action.get("event_lng") is None
+      ):
+        RideAuth.clear_pending_action()
+        alert(
+          "La bozza dell'evento non contiene il luogo. Ricrea l'evento scegliendo la posizione sulla mappa.",
+          title="Bozza da aggiornare",
+        )
+        return
       self._publish_event(action, pending=True)
     elif kind == "offer":
       if not action.get("event_id"):
@@ -150,12 +161,27 @@ class Form1(Form1Template):
     if not orario_andata or not orario_ritorno:
       alert("Inserisci gli orari standard di andata e ritorno.", title="Dati mancanti")
       return None
+    luogo_evento = (form.event_location_input.text or "").strip()
+    if not luogo_evento:
+      alert("Inserisci il luogo dell'evento.", title="Luogo richiesto")
+      return None
+    coordinate_evento = form.get_location_coordinates()
+    if coordinate_evento is None:
+      alert(
+        "Attendi il caricamento della mappa e scegli la posizione dell'evento.",
+        title="Posizione richiesta",
+      )
+      return None
+    lat_evento, lng_evento = coordinate_evento
     return {
       "name": nome,
       "description": descrizione,
       "date": selected_date.isoformat(),
       "outbound_time": orario_andata,
       "return_time": orario_ritorno,
+      "event_location": luogo_evento,
+      "event_lat": lat_evento,
+      "event_lng": lng_evento,
     }
 
   def _publish_event(self, action, pending=False):
@@ -166,6 +192,9 @@ class Form1(Form1Template):
       action["date"],
       action["outbound_time"],
       action["return_time"],
+      action.get("event_location"),
+      action.get("event_lat"),
+      action.get("event_lng"),
     )
     if isinstance(evento, dict) and not evento.get("ok", True):
       alert(evento.get("message", "Non è stato possibile creare l'evento."))
